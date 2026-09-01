@@ -14,6 +14,54 @@
   --bios-radius: 14px;
 }
 
+.generated-assets-note {
+  margin: 10px 0 12px;
+  color: var(--muted, #8da4b8);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.generated-assets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.generated-assets-grid a {
+  display: grid;
+  grid-template-rows: 76px auto;
+  overflow: hidden;
+  color: #dff6ff;
+  text-decoration: none;
+  border: 1px solid rgba(53, 198, 244, .22);
+  border-radius: 8px;
+  background: rgba(7, 16, 25, .72);
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+.generated-assets-grid a:hover,
+.generated-assets-grid a:focus-visible {
+  border-color: rgba(53, 198, 244, .72);
+  transform: translateY(-1px);
+}
+
+.generated-assets-grid img {
+  width: 100%;
+  height: 76px;
+  object-fit: contain;
+  background: #e8ecef;
+}
+
+.generated-assets-grid span {
+  padding: 6px 7px;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; }

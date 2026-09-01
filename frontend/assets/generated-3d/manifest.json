@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "source": "Gemini generated concept assets supplied for the 3D_assest branch",
+  "assets": [
+    {"id":"amr-yellow","file":"amr-yellow-reference.webp","category":"amr","label":"Yellow AMR"},
+    {"id":"amr-blue","file":"amr-blue-reference.webp","category":"amr","label":"Blue AMR"},
+    {"id":"amr-red","file":"amr-red-reference.webp","category":"amr","label":"Red AMR"},
+    {"id":"amr-green","file":"amr-green-reference.webp","category":"amr","label":"Green AMR"},
+    {"id":"sortation-cart","file":"sortation-cart-reference.webp","category":"furniture","label":"Sortation cart"},
+    {"id":"warehouse-rack","file":"warehouse-rack-reference.webp","category":"furniture","label":"Warehouse rack"},
+    {"id":"cargo-crushed","file":"cargo-crushed-reference.webp","category":"cargo","label":"Crushed cargo"},
+    {"id":"cargo-bundled","file":"cargo-bundled-reference.webp","category":"cargo","label":"Bundled cargo"},
+    {"id":"cargo-stacked","file":"cargo-stacked-reference.webp","category":"cargo","label":"Stacked cargo"},
+    {"id":"cargo-torn","file":"cargo-torn-reference.webp","category":"cargo","label":"Torn cargo"},
+    {"id":"cargo-open","file":"cargo-open-reference.webp","category":"cargo","label":"Open cargo"}
+  ]
+}
