@@ -10,6 +10,7 @@ import { DigitalTwin } from './digital-twin.js';
  */
 
 const el = id => document.getElementById(id);
+const DEFAULT_SCENARIO = 'showcase_human';
 
 const App = {
   view: null,
@@ -25,7 +26,7 @@ const App = {
   auctionEvents: [],
   decisionEvents: [],
   // Camera angle & inspection mode
-  cameraMode: 'overview', // 'overview' | 'follow' | 'pov'
+  cameraMode: 'tactical', // dense warehouse reveal; operator can switch at any time
   selectedRobotId: null,
   zoomLevel: 2.8,
   pipEnabled: false,
@@ -51,7 +52,7 @@ async function boot() {
     const r = await fetch('/api/scenarios');
     const { scenarios, showcase, policies, allocation_policies } = await r.json();
     App.showcase = showcase || [];
-    fill(el('scenario'), scenarios, 'showcase_open_floor');
+    fill(el('scenario'), scenarios, DEFAULT_SCENARIO);
     fill(el('policy'), policies, 'BIOS_PIBT.6');
     fill(el('allocationPolicy'), allocation_policies, 'auction');
     renderScenarioGallery(App.showcase);
@@ -158,7 +159,7 @@ function renderScenarioGallery(showcase) {
   const gallery = el('scenarioGallery');
   const accents = {cyan: '#35c6f4', amber: '#f5b843', violet: '#b78cff', rose: '#ff6577', lime: '#a3e635'};
   gallery.innerHTML = showcase.map((item, index) => `
-    <button class="scenario-card ${index === 0 ? 'active' : ''}" data-scenario="${escapeHtml(item.id)}"
+    <button class="scenario-card ${item.id === DEFAULT_SCENARIO ? 'active' : ''}" data-scenario="${escapeHtml(item.id)}"
       style="--card-accent:${accents[item.accent] || accents.cyan}">
       <span class="scenario-index">0${index + 1}</span>
       <span class="scenario-copy"><b>${escapeHtml(item.title)}</b><small>${escapeHtml(item.eyebrow)}</small></span>
@@ -167,7 +168,11 @@ function renderScenarioGallery(showcase) {
   gallery.querySelectorAll('.scenario-card').forEach(card => {
     card.addEventListener('click', () => selectScenarioProfile(card.dataset.scenario));
   });
-  if (showcase.length) selectScenarioProfile(showcase[0].id, false);
+  if (showcase.length) {
+    const preferred = showcase.some(item => item.id === DEFAULT_SCENARIO)
+      ? DEFAULT_SCENARIO : showcase[0].id;
+    selectScenarioProfile(preferred, false);
+  }
 }
 
 function selectScenarioProfile(id, announce = true) {
@@ -443,6 +448,7 @@ async function run() {
     App.staticLayer = buildStaticLayer(App.view, payload.map, App.imgs);
     App.twin.load(payload);
     App.twin.setSelected(App.selectedRobotId);
+    setCameraMode(App.cameraMode, false);
 
     const n = payload.frames.length;
     el('scrub').max = Math.max(0, n - 1);
