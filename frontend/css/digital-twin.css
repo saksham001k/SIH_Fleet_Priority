@@ -21,47 +21,6 @@
   line-height: 1.45;
 }
 
-.generated-assets-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.generated-assets-grid a {
-  display: grid;
-  grid-template-rows: 76px auto;
-  overflow: hidden;
-  color: #dff6ff;
-  text-decoration: none;
-  border: 1px solid rgba(53, 198, 244, .22);
-  border-radius: 8px;
-  background: rgba(7, 16, 25, .72);
-  transition: border-color .18s ease, transform .18s ease;
-}
-
-.generated-assets-grid a:hover,
-.generated-assets-grid a:focus-visible {
-  border-color: rgba(53, 198, 244, .72);
-  transform: translateY(-1px);
-}
-
-.generated-assets-grid img {
-  width: 100%;
-  height: 76px;
-  object-fit: contain;
-  background: #e8ecef;
-}
-
-.generated-assets-grid span {
-  padding: 6px 7px;
-  overflow: hidden;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; }
@@ -110,10 +69,12 @@ html, body.bios-app {
 @keyframes bios-pulse { 50% { opacity: .45; transform: scale(.82); } }
 
 .command-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
-.view-switch { display: flex; padding: 3px; border: 1px solid var(--bios-line); background: #08131d; border-radius: 10px; }
-.view-switch button, .jury-button, .icon-button { border: 0; color: var(--bios-muted); background: transparent; border-radius: 7px; font-size: 11px; font-weight: 700; }
-.view-switch button { padding: 7px 10px; }
-.view-switch button.active { color: #021019; background: var(--bios-cyan); box-shadow: 0 0 18px rgba(53,198,244,.24); }
+.simulation-mode-badge { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid rgba(53,198,244,.3); border-radius: 9px; background: rgba(53,198,244,.07); }
+.simulation-mode-badge > i { width: 7px; height: 7px; border-radius: 50%; background: var(--bios-cyan); box-shadow: 0 0 12px var(--bios-cyan); }
+.simulation-mode-badge span { display: flex; flex-direction: column; gap: 2px; }
+.simulation-mode-badge b { color: #b8ecff; font: 800 9px/1 var(--mono); letter-spacing: .08em; }
+.simulation-mode-badge small { color: var(--bios-muted); font: 700 7px/1 var(--mono); letter-spacing: .08em; }
+.jury-button, .icon-button { border: 0; color: var(--bios-muted); background: transparent; border-radius: 7px; font-size: 11px; font-weight: 700; }
 .jury-button { padding: 10px 14px; color: #061019; background: linear-gradient(135deg, #f7c75c, #f09342); box-shadow: 0 7px 24px rgba(245,184,67,.17); }
 .jury-button span { margin-right: 5px; }
 .icon-button { width: 36px; height: 36px; border: 1px solid var(--bios-line); background: #0b1823; color: var(--bios-text); font-size: 18px; }
@@ -195,6 +156,10 @@ html, body.bios-app {
 .asset-build-status small { margin-top: 4px; color: var(--bios-muted); font-size: 8px; }
 .asset-build-status .active { border-color: rgba(70,211,154,.3); background: rgba(70,211,154,.07); }
 .asset-build-status .active b { color: var(--bios-green); }
+.scene-system-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.scene-system-list li { display: grid; grid-template-columns: 7px minmax(0,1fr) auto; align-items: center; gap: 7px; padding: 7px 8px; border: 1px solid var(--bios-line); border-radius: 7px; color: #abc0cf; background: rgba(5,15,23,.55); font-size: 9px; }
+.scene-system-list i { width: 6px; height: 6px; border-radius: 50%; background: var(--bios-green); box-shadow: 0 0 8px rgba(70,211,154,.7); }
+.scene-system-list b { color: var(--bios-green); font: 800 8px/1 var(--mono); }
 .rail-section { margin: 0 0 10px; padding: 13px; border: 1px solid var(--bios-line); border-radius: var(--bios-radius); background: linear-gradient(145deg, rgba(16,31,44,.9), rgba(8,20,30,.9)); box-shadow: 0 10px 30px rgba(0,0,0,.12); }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
 .section-heading h2, details summary b { margin: 2px 0 0; font-size: 14px; letter-spacing: -.01em; }
@@ -315,7 +280,7 @@ details[open] summary { border-bottom: 1px solid var(--bios-line); }
 @media (max-width: 1100px) {
   html, body.bios-app { overflow: auto; }
   .command-bar { position: sticky; top: 0; height: auto; min-height: 64px; padding: 10px 12px; }
-  .product-mark small, .view-switch { display: none; }
+  .product-mark small, .simulation-mode-badge { display: none; }
   .digital-workspace { display: block; height: auto; overflow: visible; }
   .twin-column { display: block; overflow: visible; }
   .twin-stage { height: 68vh; min-height: 500px; }

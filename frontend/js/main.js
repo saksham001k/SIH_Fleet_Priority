@@ -1,4 +1,4 @@
-import { DigitalTwin } from './digital-twin.js?v=3d-assets-r5';
+import { DigitalTwin } from './digital-twin.js?v=3d-assets-r6';
 
 /* App shell: fetch a run, play it back, keep the panel in sync.
  *
@@ -32,7 +32,6 @@ const App = {
   pipEnabled: false,
   pipPov: false,
   hudDetails: false,
-  viewMode: '3d',
   presentationMode: false,
   showcase: [],
 };
@@ -93,8 +92,6 @@ async function boot() {
     if (App.selectedRobotId) setCameraMode('follow');
   });
 
-  el('view3dBtn').addEventListener('click', () => setViewMode('3d'));
-  el('view2dBtn').addEventListener('click', () => setViewMode('2d'));
   el('presentationBtn').addEventListener('click', togglePresentationMode);
   el('exitJuryBtn').addEventListener('click', togglePresentationMode);
   el('fullscreenBtn').addEventListener('click', toggleFullscreen);
@@ -266,22 +263,8 @@ function cycleTargetRobot() {
 function adjustZoom(delta) {
   App.zoomLevel = Math.max(1.4, Math.min(6.0, parseFloat((App.zoomLevel + delta).toFixed(1))));
   el('camZoomVal').textContent = `${App.zoomLevel.toFixed(1)}×`;
-  if (App.viewMode === '3d') App.twin.zoom(delta);
+  App.twin.zoom(delta);
   draw();
-}
-
-function setViewMode(mode) {
-  App.viewMode = mode;
-  const is3d = mode === '3d';
-  document.body.classList.toggle('view-2d', !is3d);
-  el('twinCanvas').classList.toggle('is-hidden', !is3d);
-  el('floor').classList.toggle('is-hidden', is3d);
-  el('view3dBtn').classList.toggle('active', is3d);
-  el('view2dBtn').classList.toggle('active', !is3d);
-  el('view3dBtn').setAttribute('aria-pressed', String(is3d));
-  el('view2dBtn').setAttribute('aria-pressed', String(!is3d));
-  if (is3d) App.twin.resize();
-  if (App.data) draw();
 }
 
 function toggleFullscreen() {
@@ -295,7 +278,6 @@ function togglePresentationMode() {
   el('juryOverlay').setAttribute('aria-hidden', String(!App.presentationMode));
   el('presentationBtn').classList.toggle('active', App.presentationMode);
   if (App.presentationMode) {
-    setViewMode('3d');
     if (!App.playing && App.data) togglePlay();
     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -605,35 +587,7 @@ function draw() {
   // Determine active camera target robot position
   const selectedRobot = frame.robots.find(r => r.id === App.selectedRobotId) || frame.robots[0];
 
-  if (App.viewMode === '3d') {
-    App.twin.update(frame, App.selectedRobotId, App.cameraMode, frame.t);
-  } else {
-    // The original evidence-focused 2D diagnostic view remains available as a fallback.
-    App.view.setCamera(App.cameraMode === 'tactical' ? 'overview' : App.cameraMode,
-      App.selectedRobotId, App.zoomLevel);
-    App.view.updateCameraTransform(selectedRobot);
-    const { ctx } = App.view;
-    App.view.clear();
-    ctx.save();
-    if (App.view.camRotation !== 0) {
-      ctx.translate(App.view.cssW / 2, App.view.cssH / 2);
-      ctx.rotate(App.view.camRotation);
-      ctx.translate(-App.view.cssW / 2, -App.view.cssH / 2);
-    }
-    if ((App.cameraMode === 'overview' || App.cameraMode === 'tactical') && App.staticLayer) {
-      ctx.drawImage(App.staticLayer, 0, 0, App.view.cssW, App.view.cssH);
-    } else {
-      renderStaticFloor(ctx, App.view, App.data.map, App.imgs);
-    }
-    drawNetwork(ctx, App.view, frame, App.imgs, frame.t);
-    const diameterCells = App.data.meta.robot_diameter_m / App.data.meta.cell_m;
-    drawFleet(ctx, App.view, frame, App.imgs, {
-      labels: App.view.cell >= 20,
-      robotSizeCells: Math.max(0.55, diameterCells),
-      selectedRobotId: App.selectedRobotId,
-    });
-    ctx.restore();
-  }
+  App.twin.update(frame, App.selectedRobotId, App.cameraMode, frame.t);
 
   // Render PiP Close-Up Viewfinder
   renderPiP(frame, selectedRobot);

@@ -6,25 +6,25 @@
   <meta name="theme-color" content="#071019">
   <meta name="description" content="BIOS 6.0 predictive decentralized warehouse AMR digital twin">
   <title>BIOS 6.0 · Predictive AMR Digital Twin</title>
-  <link rel="stylesheet" href="/css/style.css?v=3d-assets-r5">
-  <link rel="stylesheet" href="/css/hud.css?v=3d-assets-r5">
-  <link rel="stylesheet" href="/css/digital-twin.css?v=3d-assets-r5">
+  <link rel="stylesheet" href="/css/style.css?v=3d-assets-r6">
+  <link rel="stylesheet" href="/css/hud.css?v=3d-assets-r6">
+  <link rel="stylesheet" href="/css/digital-twin.css?v=3d-assets-r6">
 </head>
 <body class="bios-app">
   <header class="command-bar">
     <div class="product-mark" aria-label="BIOS 6.0 Digital Twin">
       <div class="mark-orbit"><span></span></div>
       <div><strong>BIOS <em>6.0</em></strong><small>PREDICTIVE COLLECTIVE INTELLIGENCE</small></div>
-      <span class="build-badge"><i></i>3D ASSET EXPERIENCE · R5</span>
+      <span class="build-badge"><i></i>3D ASSET EXPERIENCE · R6</span>
     </div>
     <div class="mission-state">
       <span class="live-pulse"></span>
       <div><small>COORDINATION STATUS</small><span id="linkState"><i class="dot" id="mgrDot"></i><b id="mgrText">initialising edge peers</b></span></div>
     </div>
     <nav class="command-actions" aria-label="Digital twin controls">
-      <div class="view-switch" role="group" aria-label="View mode">
-        <button id="view3dBtn" class="active" aria-pressed="true">3D Twin</button>
-        <button id="view2dBtn" aria-pressed="false">2D Diagnostic</button>
+      <div class="simulation-mode-badge" aria-label="Full 3D simulation active">
+        <i></i>
+        <span><b>FULL 3D</b><small>REAL GEOMETRY · LIVE TELEMETRY</small></span>
       </div>
       <button id="presentationBtn" class="jury-button"><span>◆</span> Jury Mode</button>
       <button id="fullscreenBtn" class="icon-button" title="Fullscreen" aria-label="Enter fullscreen">⛶</button>
@@ -39,7 +39,7 @@
       <div id="hud" class="hud-root" aria-hidden="true"></div>
       <div class="stage-vignette" aria-hidden="true"></div>
       <div class="stage-title">
-        <div class="scene-build-chip"><i></i>ENHANCED PROCEDURAL MODELS ACTIVE</div>
+        <div class="scene-build-chip"><i></i>FULL 3D GEOMETRY ACTIVE</div>
         <span id="activeScenarioEyebrow">ENERGY-AWARE ALLOCATION</span>
         <h1 id="activeScenarioTitle">Human Interaction</h1>
         <p id="activeScenarioDescription">Three non-broadcasting workers patrol mapped lanes while robots stop and replan locally.</p>
@@ -121,28 +121,21 @@
         <div id="fleet" class="fleet"></div>
         <div id="auctionLog" class="auction-log"><p class="muted">Allocation events will appear here.</p></div>
       </details>
-      <details class="rail-section generated-assets-section">
-        <summary><span><small>3D_ASSEST BRANCH</small><b>Generated asset library</b></span><i>⌄</i></summary>
+      <details class="rail-section generated-assets-section" open>
+        <summary><span><small>3D_ASSEST BRANCH</small><b>3D scene coverage</b></span><i>⌄</i></summary>
         <div class="asset-build-status">
           <span><b>4</b><small>AMR families</small></span>
           <span><b>5</b><small>Cargo states</small></span>
           <span><b>12</b><small>Facility systems</small></span>
           <span class="active"><b>LIVE</b><small>Scene geometry</small></span>
         </div>
-        <p class="generated-assets-note">Production references used by the branch-specific digital twin. Select an asset to inspect the full source image.</p>
-        <div class="generated-assets-grid">
-          <a href="/assets/generated-3d/amr-yellow-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/amr-yellow-reference.webp" alt="Yellow autonomous mobile robot reference sheet" loading="lazy"><span>Yellow AMR</span></a>
-          <a href="/assets/generated-3d/amr-blue-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/amr-blue-reference.webp" alt="Blue autonomous mobile robot reference sheet" loading="lazy"><span>Blue AMR</span></a>
-          <a href="/assets/generated-3d/amr-red-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/amr-red-reference.webp" alt="Red autonomous mobile robot reference sheet" loading="lazy"><span>Red AMR</span></a>
-          <a href="/assets/generated-3d/amr-green-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/amr-green-reference.webp" alt="Green autonomous mobile robot reference sheet" loading="lazy"><span>Green AMR</span></a>
-          <a href="/assets/generated-3d/sortation-cart-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/sortation-cart-reference.webp" alt="Warehouse sortation cart reference" loading="lazy"><span>Sortation cart</span></a>
-          <a href="/assets/generated-3d/warehouse-rack-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/warehouse-rack-reference.webp" alt="Warehouse storage rack reference" loading="lazy"><span>Storage rack</span></a>
-          <a href="/assets/generated-3d/cargo-crushed-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/cargo-crushed-reference.webp" alt="Crushed cardboard cargo reference" loading="lazy"><span>Crushed</span></a>
-          <a href="/assets/generated-3d/cargo-bundled-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/cargo-bundled-reference.webp" alt="Bundled cardboard cargo reference" loading="lazy"><span>Bundled</span></a>
-          <a href="/assets/generated-3d/cargo-stacked-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/cargo-stacked-reference.webp" alt="Stacked cardboard cargo reference" loading="lazy"><span>Stacked</span></a>
-          <a href="/assets/generated-3d/cargo-torn-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/cargo-torn-reference.webp" alt="Torn cardboard cargo reference" loading="lazy"><span>Torn</span></a>
-          <a href="/assets/generated-3d/cargo-open-reference.webp" target="_blank" rel="noopener"><img src="/assets/generated-3d/cargo-open-reference.webp" alt="Open cardboard cargo reference" loading="lazy"><span>Open</span></a>
-        </div>
+        <p class="generated-assets-note">Every visible warehouse entity is now built as interactive Three.js geometry. The generated image sheets remain in this branch as design references only.</p>
+        <ul class="scene-system-list" aria-label="Active 3D model systems">
+          <li><i></i><span>AMRs, payloads and moving workers</span><b>3D</b></li>
+          <li><i></i><span>Racks, pallets and cargo variants</span><b>3D</b></li>
+          <li><i></i><span>Stations, conveyor and charging dock</span><b>3D</b></li>
+          <li><i></i><span>Safety, lighting and facility equipment</span><b>3D</b></li>
+        </ul>
       </details>
       <details class="rail-section results-section">
         <summary><span><small>RUN EVIDENCE</small><b>Measured outcome</b></span><i>⌄</i></summary>
@@ -155,10 +148,10 @@
     <div class="jury-copy"><small>BIOS JURY MODE</small><strong id="juryHeadline">The warehouse is thinking locally.</strong><p id="juryNarration">Every robot sees the same task, but only an eligible robot is allowed to bid.</p></div>
     <button id="exitJuryBtn">Exit presentation</button>
   </div>
-  <script src="/js/environment.js?v=3d-assets-r5"></script>
-  <script src="/js/amr.js?v=3d-assets-r5"></script>
-  <script src="/js/hud.js?v=3d-assets-r5"></script>
-  <script src="/js/network.js?v=3d-assets-r5"></script>
-  <script type="module" src="/js/main.js?v=3d-assets-r5"></script>
+  <script src="/js/environment.js?v=3d-assets-r6"></script>
+  <script src="/js/amr.js?v=3d-assets-r6"></script>
+  <script src="/js/hud.js?v=3d-assets-r6"></script>
+  <script src="/js/network.js?v=3d-assets-r6"></script>
+  <script type="module" src="/js/main.js?v=3d-assets-r6"></script>
 </body>
 </html>
