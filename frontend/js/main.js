@@ -1,4 +1,4 @@
-import { DigitalTwin } from './digital-twin.js?v=3d-assets-r4';
+import { DigitalTwin } from './digital-twin.js?v=3d-assets-r5';
 
 /* App shell: fetch a run, play it back, keep the panel in sync.
  *

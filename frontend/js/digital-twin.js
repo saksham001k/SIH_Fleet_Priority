@@ -218,6 +218,20 @@ export class DigitalTwin {
     grid.material.opacity = .55;
     this.world.add(grid);
 
+    // High-contrast pedestrian crossing and aisle guides remain visual-only overlays.
+    const markingMaterial = new THREE.MeshBasicMaterial({color: 0xf5c84c, transparent: true, opacity: .58});
+    for (let index = -3; index <= 3; index++) {
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(cell * .12, .012, cell * 1.7), markingMaterial);
+      stripe.position.set(index * cell * .22, .018, 0);
+      this.world.add(stripe);
+    }
+    const guideMaterial = new THREE.MeshBasicMaterial({color: 0x35c6f4, transparent: true, opacity: .22});
+    for (const x of [-widthM * .24, widthM * .24]) {
+      const guide = new THREE.Mesh(new THREE.BoxGeometry(.035, .01, heightM * .72), guideMaterial);
+      guide.position.set(x, .017, 0);
+      this.world.add(guide);
+    }
+
     // The generated warehouse references show a real facility, not a board floating in
     // space.  These dressings live outside the navigable grid and therefore never alter
     // collision or planning behaviour.
@@ -244,6 +258,26 @@ export class DigitalTwin {
       const lamp = new THREE.PointLight(0xc9efff, 1.8, Math.max(5, cell * 7), 1.6);
       lamp.position.set(x, wallHeight - .25, 0);
       this.world.add(lamp);
+      const fixture = this._makeCeilingFixture();
+      fixture.position.copy(lamp.position);
+      this.world.add(fixture);
+    }
+
+    const fireCabinet = this._makeFireCabinet();
+    fireCabinet.position.set(-widthM * .34, 1.05, -heightM / 2 - .43);
+    this.world.add(fireCabinet);
+    const terminal = this._makeControlTerminal();
+    terminal.position.set(widthM / 2 + .16, 0, -heightM * .28);
+    terminal.rotation.y = -Math.PI / 2;
+    this.world.add(terminal);
+    const safetySign = this._makeWarningSign();
+    safetySign.position.set(widthM * .28, 1.35, -heightM / 2 - .43);
+    this.world.add(safetySign);
+    for (const x of [-widthM * .4, widthM * .4]) {
+      const camera = this._makeSecurityCamera();
+      camera.position.set(x, wallHeight - .5, -heightM / 2 - .35);
+      camera.rotation.y = x < 0 ? -.35 : .35;
+      this.world.add(camera);
     }
 
     const rackCells = [];
@@ -298,6 +332,20 @@ export class DigitalTwin {
     const showcaseRack = this._makeShowcaseRack(Math.min(4.5, widthM * .34));
     showcaseRack.position.set(Math.min(widthM * .18, 2.5), 0, loadingZ + .08);
     this.world.add(showcaseRack);
+    const pallet = this._makePallet(true);
+    pallet.position.set(0, 0, loadingZ + .05);
+    this.world.add(pallet);
+    const barrier = this._makeSafetyBarrier(Math.min(2.5, widthM * .2));
+    barrier.position.set(-widthM * .4, 0, loadingZ - .1);
+    this.world.add(barrier);
+    const bollards = this._makeBollardCluster();
+    bollards.position.set(widthM * .42, 0, loadingZ - .05);
+    this.world.add(bollards);
+    for (const x of [-widthM * .32, widthM * .33]) {
+      const cone = this._makeWarningCone();
+      cone.position.set(x, 0, loadingZ - .8);
+      this.world.add(cone);
+    }
 
     for (const [x, y] of this.map.stations || []) {
       this.world.add(this._makePad(x, y, 0x3b82f6, 'PICK / DROP'));
@@ -441,6 +489,233 @@ export class DigitalTwin {
     return group;
   }
 
+  _makeCeilingFixture() {
+    const group = new THREE.Group();
+    const housing = new THREE.Mesh(
+      new THREE.BoxGeometry(1.75, .09, .28),
+      new THREE.MeshStandardMaterial({color: 0x344d5f, roughness: .35, metalness: .8}),
+    );
+    const panel = new THREE.Mesh(
+      new THREE.BoxGeometry(1.52, .025, .2),
+      new THREE.MeshBasicMaterial({color: 0xcff5ff}),
+    );
+    panel.position.y = -.055;
+    group.add(housing, panel);
+    return group;
+  }
+
+  _makeChargingDock(cell = 1) {
+    const group = new THREE.Group();
+    const steel = MATERIALS.darkSteel();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(cell * .78, .1, cell * .68), steel);
+    base.position.y = .08;
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(cell * .62, .86, .16), steel);
+    tower.position.set(0, .48, cell * .26);
+    tower.castShadow = true;
+    const screen = new THREE.Mesh(
+      new THREE.BoxGeometry(cell * .28, .19, .025),
+      new THREE.MeshStandardMaterial({color: 0x071019, emissive: 0x46d39a, emissiveIntensity: 1.25}),
+    );
+    screen.position.set(0, .58, cell * .17);
+    const contactMaterial = new THREE.MeshStandardMaterial({color: 0xd9ecf5, emissive: 0x46d39a, emissiveIntensity: .48, metalness: .82});
+    for (const x of [-cell * .2, cell * .2]) {
+      const contact = new THREE.Mesh(new THREE.BoxGeometry(cell * .13, .035, cell * .42), contactMaterial);
+      contact.position.set(x, .15, -.1);
+      group.add(contact);
+    }
+    group.add(base, tower, screen);
+    return group;
+  }
+
+  _makeConveyor(cell = 1) {
+    const group = new THREE.Group();
+    const frame = MATERIALS.blueSteel();
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(cell * .82, .12, cell * .58), frame);
+    rail.position.y = .48;
+    group.add(rail);
+    const rollerMaterial = new THREE.MeshStandardMaterial({color: 0x8ba4b6, roughness: .28, metalness: .86});
+    for (let x = -cell * .34; x <= cell * .34; x += cell * .14) {
+      const roller = new THREE.Mesh(new THREE.CylinderGeometry(cell * .055, cell * .055, cell * .5, 14), rollerMaterial);
+      roller.rotation.x = Math.PI / 2;
+      roller.position.set(x, .57, 0);
+      group.add(roller);
+    }
+    for (const x of [-cell * .34, cell * .34]) {
+      for (const z of [-cell * .22, cell * .22]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(.055, .46, .055), frame);
+        leg.position.set(x, .24, z);
+        group.add(leg);
+      }
+    }
+    return group;
+  }
+
+  _makePickStation(cell = 1) {
+    const group = new THREE.Group();
+    group.add(this._makeConveyor(cell));
+    const back = new THREE.Mesh(
+      new THREE.BoxGeometry(cell * .8, .92, .1),
+      MATERIALS.darkSteel(),
+    );
+    back.position.set(0, .92, cell * .28);
+    back.castShadow = true;
+    const display = new THREE.Mesh(
+      new THREE.BoxGeometry(cell * .34, .23, .025),
+      new THREE.MeshStandardMaterial({color: 0x071019, emissive: 0x35c6f4, emissiveIntensity: .82}),
+    );
+    display.position.set(0, 1.02, cell * .22);
+    const bin = new THREE.Mesh(
+      new THREE.BoxGeometry(cell * .32, .25, cell * .38),
+      new THREE.MeshStandardMaterial({color: 0x2aa6d5, roughness: .62}),
+    );
+    bin.position.set(-cell * .2, .78, 0);
+    group.add(back, display, bin);
+    return group;
+  }
+
+  _makePallet(loaded = false) {
+    const group = new THREE.Group();
+    const wood = new THREE.MeshStandardMaterial({color: 0x8c5b2f, roughness: .94});
+    for (const z of [-.3, 0, .3]) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(1.1, .09, .18), wood);
+      slat.position.set(0, .08, z);
+      slat.castShadow = true;
+      group.add(slat);
+    }
+    for (const x of [-.42, 0, .42]) {
+      const runner = new THREE.Mesh(new THREE.BoxGeometry(.16, .1, .78), wood);
+      runner.position.set(x, .16, 0);
+      group.add(runner);
+    }
+    if (loaded) {
+      for (const [x, z, variant] of [[-.27, -.18, 0], [.27, -.18, 1], [-.27, .2, 2], [.27, .2, 3]]) {
+        const cargo = this._makeCargoAsset(variant, .62);
+        cargo.position.set(x, .23, z);
+        group.add(cargo);
+      }
+    }
+    return group;
+  }
+
+  _makeSafetyBarrier(width = 2.4) {
+    const group = new THREE.Group();
+    const steel = MATERIALS.darkSteel();
+    for (const x of [-width / 2, width / 2]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(.1, 1.05, .1), steel);
+      post.position.set(x, .52, 0);
+      group.add(post);
+    }
+    for (const y of [.42, .82]) {
+      const rail = new THREE.Mesh(
+        new THREE.BoxGeometry(width, .14, .09),
+        new THREE.MeshStandardMaterial({color: 0xf2b72f, roughness: .55, metalness: .38}),
+      );
+      rail.position.y = y;
+      group.add(rail);
+    }
+    return group;
+  }
+
+  _makeBollardCluster() {
+    const group = new THREE.Group();
+    for (const x of [-.42, 0, .42]) {
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(.1, .12, .82, 18),
+        new THREE.MeshStandardMaterial({color: 0xf5b843, roughness: .5, metalness: .4}),
+      );
+      post.position.set(x, .41, 0);
+      post.castShadow = true;
+      group.add(post);
+    }
+    return group;
+  }
+
+  _makeWarningCone() {
+    const group = new THREE.Group();
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(.42, .05, .42),
+      new THREE.MeshStandardMaterial({color: 0x1d2730, roughness: .78}),
+    );
+    base.position.y = .025;
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(.16, .54, 24),
+      new THREE.MeshStandardMaterial({color: 0xf97316, roughness: .54}),
+    );
+    cone.position.y = .32;
+    const stripe = new THREE.Mesh(
+      new THREE.CylinderGeometry(.11, .135, .08, 24),
+      new THREE.MeshBasicMaterial({color: 0xf8fafc}),
+    );
+    stripe.position.y = .3;
+    group.add(base, cone, stripe);
+    return group;
+  }
+
+  _makeFireCabinet() {
+    const group = new THREE.Group();
+    const cabinet = new THREE.Mesh(
+      new THREE.BoxGeometry(.62, .82, .16),
+      new THREE.MeshStandardMaterial({color: 0xb91c1c, roughness: .5, metalness: .35}),
+    );
+    const glass = new THREE.Mesh(
+      new THREE.BoxGeometry(.4, .5, .018),
+      new THREE.MeshBasicMaterial({color: 0xffb4b4, transparent: true, opacity: .42}),
+    );
+    glass.position.z = .09;
+    group.add(cabinet, glass);
+    return group;
+  }
+
+  _makeWarningSign() {
+    const group = new THREE.Group();
+    const plate = new THREE.Mesh(
+      new THREE.BoxGeometry(1.08, .72, .055),
+      new THREE.MeshStandardMaterial({color: 0xf5b843, roughness: .52, metalness: .25}),
+    );
+    const icon = new THREE.Mesh(
+      new THREE.ConeGeometry(.22, .42, 3),
+      new THREE.MeshBasicMaterial({color: 0x101820}),
+    );
+    icon.rotation.z = Math.PI;
+    icon.position.set(0, 0, .04);
+    group.add(plate, icon);
+    return group;
+  }
+
+  _makeSecurityCamera() {
+    const group = new THREE.Group();
+    const mount = new THREE.Mesh(new THREE.BoxGeometry(.08, .42, .08), MATERIALS.darkSteel());
+    mount.position.y = -.18;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(.38, .2, .2), MATERIALS.blueSteel());
+    body.position.set(0, -.42, .12);
+    body.rotation.x = -.24;
+    const lens = new THREE.Mesh(
+      new THREE.CylinderGeometry(.065, .065, .05, 18),
+      new THREE.MeshBasicMaterial({color: 0x35c6f4}),
+    );
+    lens.rotation.x = Math.PI / 2;
+    lens.position.set(0, -.44, .24);
+    group.add(mount, body, lens);
+    return group;
+  }
+
+  _makeControlTerminal() {
+    const group = new THREE.Group();
+    const stand = new THREE.Mesh(new THREE.BoxGeometry(.18, 1.12, .18), MATERIALS.darkSteel());
+    stand.position.y = .56;
+    const consoleBody = new THREE.Mesh(new THREE.BoxGeometry(.72, .52, .28), MATERIALS.blueSteel());
+    consoleBody.position.y = 1.12;
+    consoleBody.rotation.x = -.16;
+    const screen = new THREE.Mesh(
+      new THREE.BoxGeometry(.52, .31, .025),
+      new THREE.MeshStandardMaterial({color: 0x071019, emissive: 0x35c6f4, emissiveIntensity: 1.1}),
+    );
+    screen.position.set(0, 1.16, .15);
+    screen.rotation.x = -.16;
+    group.add(stand, consoleBody, screen);
+    return group;
+  }
+
   _makePad(x, y, colour, labelText) {
     const cell = this.meta.cell_m;
     const group = new THREE.Group();
@@ -463,6 +738,12 @@ export class DigitalTwin {
     label.position.y = 1.15;
     label.scale.multiplyScalar(.58);
     group.add(label);
+    const equipment = labelText === 'CHARGE'
+      ? this._makeChargingDock(cell)
+      : this._makePickStation(cell);
+    equipment.scale.setScalar(.74);
+    equipment.position.y = .08;
+    group.add(equipment);
     return group;
   }
 
@@ -677,21 +958,10 @@ export class DigitalTwin {
   _ensureObstacle(id) {
     if (this.obstacles.has(id)) return this.obstacles.get(id);
     const group = new THREE.Group();
-    const pallet = new THREE.Mesh(
-      new THREE.BoxGeometry(.92, .11, .72),
-      new THREE.MeshStandardMaterial({color: 0x7b4d27, roughness: .9}),
-    );
-    pallet.position.y = .08;
-    pallet.castShadow = true;
+    const pallet = this._makePallet(true);
+    pallet.rotation.z = -.09;
+    pallet.rotation.y = .18;
     group.add(pallet);
-    for (const z of [-.25, 0, .25]) {
-      const slat = new THREE.Mesh(
-        new THREE.BoxGeometry(.86, .07, .12),
-        new THREE.MeshStandardMaterial({color: 0xa86f38, roughness: .86}),
-      );
-      slat.position.set(0, .17, z);
-      group.add(slat);
-    }
     const warning = new THREE.Mesh(
       new THREE.RingGeometry(.56, .65, 36),
       new THREE.MeshBasicMaterial({color: PALETTE.rose, transparent: true, opacity: .8,
