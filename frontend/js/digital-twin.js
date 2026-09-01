@@ -323,18 +323,21 @@ export class DigitalTwin {
     const uprightGeometry = new THREE.BoxGeometry(cell * .055, cell * 1.18, cell * .055);
     const shelfGeometry = new THREE.BoxGeometry(cell * .9, cell * .045, cell * .9);
     const cartonGeometry = new THREE.BoxGeometry(cell * .62, cell * .24, cell * .64);
-    const rackMaterial = new THREE.MeshStandardMaterial({color: PALETTE.steel, roughness: .32, metalness: .76});
-    const shelfMaterial = new THREE.MeshStandardMaterial({color: PALETTE.rack, roughness: .38, metalness: .64});
+    const beamGeometry = new THREE.BoxGeometry(cell * .82, cell * .055, cell * .045);
+    const rackMaterial = new THREE.MeshStandardMaterial({color: 0x245778, roughness: .3, metalness: .78});
+    const shelfMaterial = new THREE.MeshStandardMaterial({color: 0x1b3345, roughness: .38, metalness: .64});
+    const rackBeamMaterial = new THREE.MeshStandardMaterial({color: 0xe89d24, roughness: .48, metalness: .48});
     const cartonMaterial = new THREE.MeshStandardMaterial({color: 0xb47a43, roughness: .84, metalness: .02});
     const uprights = new THREE.InstancedMesh(uprightGeometry, rackMaterial, rackCells.length * 4);
     const shelves = new THREE.InstancedMesh(shelfGeometry, shelfMaterial, rackCells.length * 3);
+    const beams = new THREE.InstancedMesh(beamGeometry, rackBeamMaterial, rackCells.length * 6);
     const cartons = new THREE.InstancedMesh(cartonGeometry, cartonMaterial, rackCells.length * 2);
-    for (const mesh of [uprights, shelves, cartons]) {
+    for (const mesh of [uprights, shelves, beams, cartons]) {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
     }
     const matrix = new THREE.Matrix4();
-    let uprightIndex = 0, shelfIndex = 0, cartonIndex = 0;
+    let uprightIndex = 0, shelfIndex = 0, beamIndex = 0, cartonIndex = 0;
     rackCells.forEach(([x, y], index) => {
       const centre = this._cellToWorld(x, y, 0);
       const edge = cell * .41;
@@ -345,14 +348,26 @@ export class DigitalTwin {
       for (const level of [cell * .1, cell * .56, cell * 1.02]) {
         matrix.setPosition(centre.x, level, centre.z);
         shelves.setMatrixAt(shelfIndex++, matrix);
+        for (const z of [centre.z - edge, centre.z + edge]) {
+          matrix.setPosition(centre.x, level + cell * .055, z);
+          beams.setMatrixAt(beamIndex++, matrix);
+        }
       }
       for (const level of [cell * .3, cell * .76]) {
         const stagger = (index % 2 ? 1 : -1) * cell * .08;
         matrix.setPosition(centre.x + stagger, level, centre.z);
         cartons.setMatrixAt(cartonIndex++, matrix);
       }
+      // Place the supplied damaged/open/stacked cargo concepts throughout the
+      // shelving without multiplying draw calls on every rack bay.
+      if (index % 8 === 0) {
+        const displayCargo = this._makeCargoAsset(index % 5, Math.min(.42, cell * .34));
+        displayCargo.position.set(centre.x, cell * .13, centre.z);
+        displayCargo.rotation.y = index % 2 ? Math.PI / 2 : 0;
+        this.world.add(displayCargo);
+      }
     });
-    this.world.add(uprights, shelves, cartons);
+    this.world.add(uprights, shelves, beams, cartons);
 
     // A loading-zone vignette gives open-floor scenarios scale and integrates the
     // generated cart/rack/cargo references without occupying a planner cell.
@@ -456,7 +471,7 @@ export class DigitalTwin {
     colours.forEach((colour, index) => {
       const tote = new THREE.Mesh(
         new THREE.BoxGeometry(.58, .32, .52),
-        new THREE.MeshStandardMaterial({color, roughness: .62, metalness: .05}),
+        new THREE.MeshStandardMaterial({color: colour, roughness: .62, metalness: .05}),
       );
       tote.position.set(-.72 + index * .72, .72, 0);
       tote.castShadow = true;
@@ -486,7 +501,7 @@ export class DigitalTwin {
     }
     for (let bay = 0; bay < 2; bay++) {
       for (let level = 0; level < 3; level++) {
-        const cargo = this._makeCargoAsset((bay + level) % 4, .78);
+        const cargo = this._makeCargoAsset((bay + level) % 5, .78);
         cargo.position.set(-width * .25 + bay * width * .5, .38 + level * .7, 0);
         group.add(cargo);
       }
@@ -498,23 +513,84 @@ export class DigitalTwin {
     const group = new THREE.Group();
     const carton = MATERIALS.carton();
     const tape = new THREE.MeshStandardMaterial({color: 0xd5b37b, roughness: .76});
-    const box = new THREE.Mesh(new THREE.BoxGeometry(.72, .48, .62), carton);
-    box.position.y = .25;
-    box.scale.y = variant === 1 ? .58 : 1;
-    box.rotation.z = variant === 2 ? -.12 : 0;
-    box.castShadow = true;
-    group.add(box);
-    const tapeBand = new THREE.Mesh(new THREE.BoxGeometry(.13, .495, .635), tape);
-    tapeBand.position.y = .255;
-    tapeBand.rotation.z = box.rotation.z;
-    group.add(tapeBand);
-    if (variant === 3) {
-      box.scale.set(.96, .72, .96);
-      for (const x of [-.2, .2]) {
-        const flap = new THREE.Mesh(new THREE.BoxGeometry(.34, .035, .54), carton);
-        flap.position.set(x, .48, 0);
-        flap.rotation.z = x < 0 ? -.62 : .62;
-        group.add(flap);
+    const darkInside = new THREE.MeshStandardMaterial({color: 0x382316, roughness: 1});
+    const labelMaterial = new THREE.MeshStandardMaterial({color: 0xe8e2d7, roughness: .88});
+    const addBox = (size, position, material = carton, rotation = [0, 0, 0]) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+      mesh.position.set(...position);
+      mesh.rotation.set(...rotation);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+      return mesh;
+    };
+
+    switch (Math.abs(variant) % 5) {
+      case 0: { // bundled parcel: strapped and labelled like the supplied reference
+        addBox([.82, .58, .7], [0, .3, 0]);
+        addBox([.13, .595, .72], [0, .305, 0], tape);
+        addBox([.84, .595, .12], [0, .305, 0], tape);
+        addBox([.27, .012, .18], [.19, .602, -.12], labelMaterial, [-Math.PI / 2, 0, 0]);
+        break;
+      }
+      case 1: { // crushed carton with a deterministically deformed shell
+        const geometry = new THREE.BoxGeometry(.8, .55, .68, 2, 2, 2);
+        const positions = geometry.getAttribute('position');
+        for (let index = 0; index < positions.count; index++) {
+          const x = positions.getX(index);
+          const y = positions.getY(index);
+          const z = positions.getZ(index);
+          const dent = .62 + .2 * Math.sin(index * 2.37);
+          positions.setXYZ(index,
+            x * (y > 0 ? .76 + .12 * Math.cos(index) : 1),
+            y > 0 ? y * dent + .035 * Math.sin(index * 4.1) : y,
+            z * (y > 0 ? .8 + .1 * Math.sin(index * 1.7) : 1));
+        }
+        geometry.computeVertexNormals();
+        const crushed = new THREE.Mesh(geometry, carton);
+        crushed.position.y = .27;
+        crushed.rotation.set(-.06, .08, -.04);
+        crushed.castShadow = true;
+        group.add(crushed);
+        addBox([.18, .025, .46], [.14, .52, .02], darkInside, [-.18, .3, -.35]);
+        break;
+      }
+      case 2: { // open carton with four outward-folding flaps and a visible cavity
+        addBox([.76, .06, .66], [0, .03, 0]);
+        addBox([.76, .44, .055], [0, .25, -.305]);
+        addBox([.76, .44, .055], [0, .25, .305]);
+        addBox([.055, .44, .56], [-.355, .25, 0]);
+        addBox([.055, .44, .56], [.355, .25, 0]);
+        addBox([.62, .025, .5], [0, .075, 0], darkInside);
+        addBox([.7, .035, .28], [0, .52, -.43], carton, [-.52, 0, 0]);
+        addBox([.7, .035, .28], [0, .52, .43], carton, [.52, 0, 0]);
+        addBox([.28, .035, .54], [-.47, .52, 0], carton, [0, 0, .52]);
+        addBox([.28, .035, .54], [.47, .52, 0], carton, [0, 0, -.52]);
+        break;
+      }
+      case 3: { // three visibly separate, slightly unstable stacked cartons
+        const levels = [
+          [[.84, .4, .7], [0, .2, 0], [0, .02, 0]],
+          [[.76, .36, .64], [.03, .58, 0], [0, -.08, .06]],
+          [[.66, .32, .56], [-.02, .92, .01], [0, .12, -.1]],
+        ];
+        for (const [size, position, rotation] of levels) {
+          addBox(size, position, carton, rotation);
+          addBox([.12, size[1] + .015, size[2] + .015], position, tape, rotation);
+        }
+        break;
+      }
+      default: { // torn carton with uneven, splayed strips matching the damaged asset
+        addBox([.78, .42, .66], [0, .21, 0]);
+        addBox([.64, .025, .5], [0, .4, 0], darkInside);
+        const strips = [
+          [-.27, -.42, -.65, .24], [-.08, -.45, -.42, .19], [.12, -.43, -.58, .22],
+          [.3, -.4, -.72, .17], [-.25, .42, .62, .2], [0, .45, .48, .22], [.27, .41, .7, .18],
+        ];
+        for (const [x, z, tilt, width] of strips) {
+          addBox([width, .028, .34], [x, .49, z], carton, [z < 0 ? tilt : -tilt, 0, x * .55]);
+        }
+        break;
       }
     }
     group.scale.setScalar(scale);
@@ -620,7 +696,7 @@ export class DigitalTwin {
       group.add(runner);
     }
     if (loaded) {
-      for (const [x, z, variant] of [[-.27, -.18, 0], [.27, -.18, 1], [-.27, .2, 2], [.27, .2, 3]]) {
+      for (const [x, z, variant] of [[-.27, -.18, 0], [.27, -.18, 1], [-.27, .2, 3], [.27, .2, 4]]) {
         const cargo = this._makeCargoAsset(variant, .62);
         cargo.position.set(x, .23, z);
         group.add(cargo);
@@ -786,7 +862,7 @@ export class DigitalTwin {
       const colour = colours[task.cargo_type] || PALETTE.cyan;
       const marker = new THREE.Group();
       marker.position.copy(this._cellToWorld(task.pick[0], task.pick[1], .12));
-      const variant = {normal: 0, heavy: 1, fragile: 2, hazardous: 3}[task.cargo_type] || 0;
+      const variant = {normal: 0, heavy: 3, fragile: 2, hazardous: 4}[task.cargo_type] || 0;
       const cargo = this._makeCargoAsset(variant, .78);
       cargo.traverse(child => {
         if (child.isMesh) child.material = child.material.clone();
@@ -893,6 +969,17 @@ export class DigitalTwin {
       rail.position.set(x, .57, .02);
       group.add(rail);
     }
+    // All five supplied cargo concepts are real meshes on every AMR. Telemetry selects
+    // the matching payload only while the robot is travelling from pick to drop.
+    const payloads = [];
+    for (let variant = 0; variant < 5; variant++) {
+      const payload = this._makeCargoAsset(variant, .42);
+      payload.position.set(0, .6, .02);
+      payload.visible = false;
+      payload.traverse(child => { child.userData.robotId = id; });
+      payloads.push(payload);
+      group.add(payload);
+    }
     const arrow = new THREE.Mesh(
       new THREE.ConeGeometry(.13, .35, 3),
       new THREE.MeshBasicMaterial({color: 0xffffff}),
@@ -920,7 +1007,7 @@ export class DigitalTwin {
     label.position.y = 1.34;
     label.scale.multiplyScalar(.84);
     group.add(label);
-    group.userData = {robotId: id, colour, halo, selection, label, beacon, wheels};
+    group.userData = {robotId: id, colour, halo, selection, label, beacon, wheels, payloads};
     this.dynamic.add(group);
     this.robots.set(id, group);
     return group;
@@ -1034,6 +1121,10 @@ export class DigitalTwin {
       group.userData.beacon.material.color.setHex(stateColour);
       group.userData.beacon.scale.setScalar(.82 + .25 * (1 + Math.sin(simTime * 5)) / 2);
       for (const wheel of group.userData.wheels) wheel.rotation.x = -simTime * 4;
+      const payloadVariant = {normal: 0, heavy: 3, fragile: 2, hazardous: 4}[info.cargo_type] ?? 1;
+      group.userData.payloads.forEach((payload, index) => {
+        payload.visible = Boolean(info.carry) && index === payloadVariant;
+      });
       group.visible = true;
     }
     for (const human of frame.humans || []) {
