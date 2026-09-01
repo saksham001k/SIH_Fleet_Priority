@@ -211,6 +211,38 @@ export class DigitalTwin {
     floor.receiveShadow = true;
     this.world.add(floor);
 
+    // Build the warehouse surface from real, separated tile meshes. The narrow gaps
+    // and alternating finish make depth visible at every camera angle while keeping
+    // the simulation grid and collision map unchanged.
+    const tileGeometry = new THREE.BoxGeometry(cell * .965, .055, cell * .965);
+    const tileMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: .78,
+      metalness: .12,
+      vertexColors: true,
+    });
+    const tiles = new THREE.InstancedMesh(
+      tileGeometry,
+      tileMaterial,
+      this.map.width * this.map.height,
+    );
+    const tileMatrix = new THREE.Matrix4();
+    const tileColours = [new THREE.Color(0x162838), new THREE.Color(0x122331), new THREE.Color(0x192d3d)];
+    let tileIndex = 0;
+    for (let y = 0; y < this.map.height; y++) {
+      for (let x = 0; x < this.map.width; x++) {
+        const centre = this._cellToWorld(x, y, -.018);
+        tileMatrix.setPosition(centre);
+        tiles.setMatrixAt(tileIndex, tileMatrix);
+        tiles.setColorAt(tileIndex, tileColours[(x + y * 2) % tileColours.length]);
+        tileIndex++;
+      }
+    }
+    tiles.receiveShadow = true;
+    tiles.instanceMatrix.needsUpdate = true;
+    if (tiles.instanceColor) tiles.instanceColor.needsUpdate = true;
+    this.world.add(tiles);
+
     const grid = new THREE.GridHelper(Math.max(widthM, heightM) * 1.05,
       Math.max(this.map.width, this.map.height), 0x29465e, 0x1a2c3b);
     grid.position.y = .012;
