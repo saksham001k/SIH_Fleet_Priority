@@ -16,6 +16,12 @@ const PALETTE = {
 const ROBOT_COLOURS = [PALETTE.cyan, PALETTE.green, PALETTE.amber, PALETTE.violet,
   0xff7f50, 0x67e8f9, 0xa3e635, 0xfb7185, 0x60a5fa, 0xf0abfc];
 
+const MATERIALS = {
+  carton: () => new THREE.MeshStandardMaterial({color: 0xb9783f, roughness: .9, metalness: .01}),
+  darkSteel: () => new THREE.MeshStandardMaterial({color: 0x172b3a, roughness: .34, metalness: .78}),
+  blueSteel: () => new THREE.MeshStandardMaterial({color: 0x294b63, roughness: .3, metalness: .74}),
+};
+
 function disposeObject(root) {
   root.traverse(obj => {
     if (obj.geometry) obj.geometry.dispose();
@@ -212,6 +218,34 @@ export class DigitalTwin {
     grid.material.opacity = .55;
     this.world.add(grid);
 
+    // The generated warehouse references show a real facility, not a board floating in
+    // space.  These dressings live outside the navigable grid and therefore never alter
+    // collision or planning behaviour.
+    const wallMaterial = new THREE.MeshStandardMaterial({color: 0x102331, roughness: .7, metalness: .32});
+    const wallHeight = Math.max(2.8, cell * 2.4);
+    for (const [x, z, w, d] of [
+      [0, -heightM / 2 - .55, widthM + 1.4, .18],
+      [-widthM / 2 - .55, 0, .18, heightM + 1.4],
+      [widthM / 2 + .55, 0, .18, heightM + 1.4],
+    ]) {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(w, wallHeight, d), wallMaterial);
+      wall.position.set(x, wallHeight / 2 - .18, z);
+      wall.receiveShadow = true;
+      this.world.add(wall);
+    }
+    const beamMaterial = MATERIALS.darkSteel();
+    for (let x = -widthM / 2; x <= widthM / 2; x += Math.max(3, cell * 4)) {
+      const column = new THREE.Mesh(new THREE.BoxGeometry(.18, wallHeight, .18), beamMaterial);
+      column.position.set(x, wallHeight / 2, -heightM / 2 - .36);
+      column.castShadow = true;
+      this.world.add(column);
+    }
+    for (let x = -widthM / 2 + 1.2; x < widthM / 2; x += Math.max(3.2, cell * 4.5)) {
+      const lamp = new THREE.PointLight(0xc9efff, 1.8, Math.max(5, cell * 7), 1.6);
+      lamp.position.set(x, wallHeight - .25, 0);
+      this.world.add(lamp);
+    }
+
     const rackCells = [];
     for (let y = 0; y < this.map.height; y++) {
       for (let x = 0; x < this.map.width; x++) {
@@ -253,6 +287,17 @@ export class DigitalTwin {
       }
     });
     this.world.add(uprights, shelves, cartons);
+
+    // A loading-zone vignette gives open-floor scenarios scale and integrates the
+    // generated cart/rack/cargo references without occupying a planner cell.
+    const loadingZ = heightM / 2 + .28;
+    const cart = this._makeSortationCart();
+    cart.position.set(-Math.min(widthM * .28, 3.5), 0, loadingZ);
+    cart.rotation.y = Math.PI;
+    this.world.add(cart);
+    const showcaseRack = this._makeShowcaseRack(Math.min(4.5, widthM * .34));
+    showcaseRack.position.set(Math.min(widthM * .18, 2.5), 0, loadingZ + .08);
+    this.world.add(showcaseRack);
 
     for (const [x, y] of this.map.stations || []) {
       this.world.add(this._makePad(x, y, 0x3b82f6, 'PICK / DROP'));
@@ -297,6 +342,105 @@ export class DigitalTwin {
     this.world.add(boundary);
   }
 
+  _makeSortationCart() {
+    const group = new THREE.Group();
+    const frameMaterial = MATERIALS.blueSteel();
+    const deckMaterial = new THREE.MeshStandardMaterial({color: 0x7890a3, roughness: .45, metalness: .6});
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(2.35, .12, .72), deckMaterial);
+    deck.position.y = .48;
+    deck.castShadow = true;
+    group.add(deck);
+    for (const x of [-1.05, 1.05]) {
+      for (const z of [-.3, .3]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(.07, 1.15, .07), frameMaterial);
+        post.position.set(x, .75, z);
+        post.castShadow = true;
+        group.add(post);
+      }
+    }
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, 1.05), frameMaterial);
+    handle.position.set(-1.18, 1.24, 0);
+    group.add(handle);
+    for (const x of [-.88, .88]) {
+      for (const z of [-.28, .28]) {
+        const wheel = new THREE.Mesh(
+          new THREE.CylinderGeometry(.13, .13, .07, 18),
+          new THREE.MeshStandardMaterial({color: 0x070b0e, roughness: .85}),
+        );
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(x, .18, z);
+        group.add(wheel);
+      }
+    }
+    const colours = [0xf0b429, 0x32b6df, 0x36c98f];
+    colours.forEach((colour, index) => {
+      const tote = new THREE.Mesh(
+        new THREE.BoxGeometry(.58, .32, .52),
+        new THREE.MeshStandardMaterial({color, roughness: .62, metalness: .05}),
+      );
+      tote.position.set(-.72 + index * .72, .72, 0);
+      tote.castShadow = true;
+      group.add(tote);
+    });
+    return group;
+  }
+
+  _makeShowcaseRack(width = 4.2) {
+    const group = new THREE.Group();
+    const steel = MATERIALS.blueSteel();
+    const shelfMaterial = MATERIALS.darkSteel();
+    const height = 2.35;
+    for (const x of [-width / 2, 0, width / 2]) {
+      for (const z of [-.38, .38]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(.09, height, .09), steel);
+        post.position.set(x, height / 2, z);
+        post.castShadow = true;
+        group.add(post);
+      }
+    }
+    for (const y of [.32, 1.02, 1.72, 2.28]) {
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(width, .08, .88), shelfMaterial);
+      shelf.position.y = y;
+      shelf.castShadow = true;
+      group.add(shelf);
+    }
+    for (let bay = 0; bay < 2; bay++) {
+      for (let level = 0; level < 3; level++) {
+        const cargo = this._makeCargoAsset((bay + level) % 4, .78);
+        cargo.position.set(-width * .25 + bay * width * .5, .38 + level * .7, 0);
+        group.add(cargo);
+      }
+    }
+    return group;
+  }
+
+  _makeCargoAsset(variant = 0, scale = 1) {
+    const group = new THREE.Group();
+    const carton = MATERIALS.carton();
+    const tape = new THREE.MeshStandardMaterial({color: 0xd5b37b, roughness: .76});
+    const box = new THREE.Mesh(new THREE.BoxGeometry(.72, .48, .62), carton);
+    box.position.y = .25;
+    box.scale.y = variant === 1 ? .58 : 1;
+    box.rotation.z = variant === 2 ? -.12 : 0;
+    box.castShadow = true;
+    group.add(box);
+    const tapeBand = new THREE.Mesh(new THREE.BoxGeometry(.13, .495, .635), tape);
+    tapeBand.position.y = .255;
+    tapeBand.rotation.z = box.rotation.z;
+    group.add(tapeBand);
+    if (variant === 3) {
+      box.scale.set(.96, .72, .96);
+      for (const x of [-.2, .2]) {
+        const flap = new THREE.Mesh(new THREE.BoxGeometry(.34, .035, .54), carton);
+        flap.position.set(x, .48, 0);
+        flap.rotation.z = x < 0 ? -.62 : .62;
+        group.add(flap);
+      }
+    }
+    group.scale.setScalar(scale);
+    return group;
+  }
+
   _makePad(x, y, colour, labelText) {
     const cell = this.meta.cell_m;
     const group = new THREE.Group();
@@ -329,13 +473,13 @@ export class DigitalTwin {
       const colour = colours[task.cargo_type] || PALETTE.cyan;
       const marker = new THREE.Group();
       marker.position.copy(this._cellToWorld(task.pick[0], task.pick[1], .12));
-      const box = new THREE.Mesh(
-        new THREE.BoxGeometry(.58, .52, .58),
-        new THREE.MeshStandardMaterial({color: colour, roughness: .55, metalness: .08}),
-      );
-      box.position.y = .28;
-      box.castShadow = true;
-      marker.add(box);
+      const variant = {normal: 0, heavy: 1, fragile: 2, hazardous: 3}[task.cargo_type] || 0;
+      const cargo = this._makeCargoAsset(variant, .78);
+      cargo.traverse(child => {
+        if (child.isMesh) child.material = child.material.clone();
+      });
+      cargo.position.y = .05;
+      marker.add(cargo);
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(.42, .49, 32),
         new THREE.MeshBasicMaterial({color: colour, transparent: true, opacity: .75,
@@ -413,6 +557,23 @@ export class DigitalTwin {
     );
     beacon.position.set(.24, .6, .15);
     group.add(mast, lidar, beacon);
+    // Forklift-style lift and forks reproduce the generated AMR silhouette while the
+    // compact base keeps the simulation footprint unchanged.
+    const liftMaterial = MATERIALS.darkSteel();
+    for (const x of [-.2, .2]) {
+      const liftRail = new THREE.Mesh(new THREE.BoxGeometry(.055, .82, .055), liftMaterial);
+      liftRail.position.set(x, .72, -.35);
+      liftRail.userData.robotId = id;
+      group.add(liftRail);
+      const fork = new THREE.Mesh(new THREE.BoxGeometry(.07, .045, .62), liftMaterial);
+      fork.position.set(x, .18, -.68);
+      fork.userData.robotId = id;
+      group.add(fork);
+    }
+    const carriage = new THREE.Mesh(new THREE.BoxGeometry(.5, .08, .08), liftMaterial);
+    carriage.position.set(0, .42, -.37);
+    carriage.userData.robotId = id;
+    group.add(carriage);
     const deckRailMaterial = new THREE.MeshStandardMaterial({color: 0x8da2b5, roughness: .34, metalness: .78});
     for (const x of [-.32, .32]) {
       const rail = new THREE.Mesh(new THREE.BoxGeometry(.035, .07, .56), deckRailMaterial);

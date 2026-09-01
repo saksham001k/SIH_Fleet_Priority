@@ -64,6 +64,7 @@ MAX_SEED = 2**31 - 1
 
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("image/png", ".png")
+mimetypes.add_type("image/webp", ".webp")
 mimetypes.add_type("text/css", ".css")
 
 
