@@ -98,7 +98,10 @@ The socket is explicitly non-blocking (`src/transport.py:249`). A robot never st
 
 There are two distinct mechanisms, and neither is a liveness watchdog.
 
-**Sensor staleness (implemented and tested at the schema level).** Before every tick, `run_edge_node` reads the newest sensor frame and its local receive time (`src/edge_runtime.py:290`). If there is no frame, or the newest frame is older than `sensor_timeout_s` (default 0.25 s, `src/edge_runtime.py:268`), the node increments `sensor_timeouts` and emits an explicit stop instead of ticking the brain (`src/edge_runtime.py:292-295`):
+**Sensor staleness (implemented and tested at the schema level).** Before every tick,
+`run_edge_node` reads the newest sensor frame and its local receive time. If there is no
+frame, or the newest frame is older than `sensor_timeout_s` (default 0.20 s), the node
+increments `sensor_timeouts` and emits an explicit stop instead of ticking the brain:
 
 ```python
 runtime.metrics.sensor_timeouts += 1
@@ -437,7 +440,7 @@ time.sleep(max(0.0, next_tick - time.monotonic()))
 
 - **Single overrun.** `next_tick - now` is negative, the sleep is zero, and the next tick begins immediately. `next_tick` is *not* re-phased to the present, so the loop runs back-to-back ticks until it catches up. A 100 ms stall produces a burst of five zero-sleep ticks. `deadline_misses` increments once for the overrunning tick (`src/edge_runtime.py:68-69`).
 - **Sustained overrun** (mean cost above 20 ms). The loop can never catch up and free-runs at whatever rate the hardware allows. There is no throttle, no rate-halving fallback, and no alarm.
-- **What does not break.** The brain's notion of time is `clock_offset_s + (now - started)` from the real monotonic clock (`src/edge_runtime.py:291`), never a tick counter. A slow node therefore samples the world less often but never believes the wrong time; its heartbeats and intents stay truthful and its peers' TTL-based reasoning stays correct. It simply reacts later — and if it falls far enough behind that its own sensor frames age past 0.25 s, the staleness check at `src/edge_runtime.py:292` converts the degradation into an explicit safety stop rather than into stale-data driving.
+- **What does not break.** The brain's notion of time is `clock_offset_s + (now - started)` from the real monotonic clock, never a tick counter. A slow node therefore samples the world less often but never believes the wrong time; its heartbeats and intents stay truthful and its peers' TTL-based reasoning stays correct. It simply reacts later — and if it falls far enough behind that its own sensor frames age past 0.20 s, the staleness check converts the degradation into an explicit safety stop rather than into stale-data driving.
 - **What is not implemented.** No graceful degradation ladder — the node does not, for example, drop to a 25 Hz safety-only mode under load. The evidence that it is not needed is the 6.2x-66x measured headroom; the honest statement is that the ladder does not exist.
 
 Detection after the fact is straightforward: `deadline_misses`, `loop_p95_ms`, `loop_p99_ms` and `loop_max_ms` are in every node's final JSON report (`src/edge_runtime.py:80-88`), and the multi-process demo fails the run outright if any node reports a miss (`src/distributed_demo.py:283-286`).
@@ -510,7 +513,8 @@ Five obligations fall on the integrator, and they are where a real deployment wo
 1. **Grid localization, not just metric pose.** `cell` must be supplied, and it must be consistent with `pose` under `to_cell(p, cell_m) = (floor(x/1.4), floor(y/1.4))` (`src/geometry.py:38`, `src/settings.py:305`, `cell_m = 1.4` m). The robot must therefore be localized in a map whose origin and cell size match the deployed warehouse definition. Nothing in the node cross-checks the two, so a driver that reports a correct pose and a stale cell will produce coherent-looking but wrong coordination.
 2. **Segmented clearances from the safety scanner.** The three optional clearance fields default to 99.0 m — "nothing anywhere near me". A driver that omits them does not get conservative behaviour, it gets blind behaviour. In particular `clearance_omni_m` is the only field that sees a peer merging from 90 degrees at a junction, which is precisely the chokepoint case in requirement 11. Supplying only `clearance_m` is a silent safety downgrade.
 3. **Identity-free detections.** `Detection` (`src/world.py:60`) deliberately carries no identity: the reactive layer must work on blobs, not on the peer table, because people, forklifts and dropped pallets do not broadcast. The driver should pass raw lidar clusters and must not filter out objects it believes are peers.
-4. **A frame at least every 0.25 s.** Anything slower trips the staleness stop (`src/edge_runtime.py:268`, `:293`). At the 50 Hz loop rate, one frame per tick is the intended cadence.
+4. **A frame at least every 0.20 s.** Anything slower trips the staleness stop. At the
+   50 Hz loop rate, one frame per tick is the intended cadence.
 5. **The map and task source, which is the real integration seam.** A node bootstraps its warehouse grid, home cell and initial task queue from a named `SCENARIO` (`src/edge_runtime.py:350-351`), not from the live plant. `scenario.env` is a `Warehouse` (`src/environment.py:37`) — width, height, an occupancy grid, station cells and dock cells. Deploying into a real warehouse means constructing that object from the site map and feeding real work in, either through the auction path (`TASK_NEW` messages on the same multicast group, as the demo's `WMS` sender illustrates at `src/distributed_demo.py:210-229`) or a WMS bridge. **This is not implemented for a real facility**, and it is the largest remaining piece of real-hardware integration work after the sensor driver.
 
 ---

@@ -218,8 +218,8 @@ def run_hil_demo(
     if sensor_cut_robot is not None:
         if sensor_cut_robot not in [f"AMR{index + 1:02d}" for index in range(robots)]:
             raise ValueError("sensor_cut_robot must identify a configured AMR")
-        if sensor_cut_at_s < 0.0 or sensor_cut_duration_s <= 0.25:
-            raise ValueError("sensor cut must start at or after zero and exceed 0.25 s")
+        if sensor_cut_at_s < 0.0 or sensor_cut_duration_s <= 0.20:
+            raise ValueError("sensor cut must start at or after zero and exceed 0.20 s")
         if sensor_cut_at_s + sensor_cut_duration_s >= duration_s:
             raise ValueError("sensor cut must end before the evidence window")
 
@@ -403,7 +403,7 @@ def run_hil_demo(
         response_s = None if first_stop is None else first_stop - sensor_cut_at_s
         sensor_cut_gate = (
             response_s is not None
-            and response_s <= 0.40
+            and response_s <= 0.30
             and recovered
         )
         sensor_cut_evidence = {

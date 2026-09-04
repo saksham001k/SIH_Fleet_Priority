@@ -187,8 +187,9 @@ Keep one evidence folder containing:
 
 Suggested measured gates are zero process crashes, zero invalid sensor/actuator frames,
 zero control deadline misses, loop p99 below the 20 ms period, authenticated peer traffic
-on every node, a sensor-staleness stop within the configured 250 ms timeout plus one
-control period, successful recovery after sensor return, and zero observed contacts in
+on every node, a sensor-staleness stop within the configured 200 ms timeout plus normal
+control/transport scheduling and no later than the 300 ms acceptance ceiling, successful
+recovery after sensor return, and zero observed contacts in
 the declared campaign. Physical stopping distance must use the purchased AMR's measured
 braking and controller reaction data rather than the example profile.
 

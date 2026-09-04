@@ -341,12 +341,16 @@ def actuation_from_dict(data: object) -> tuple[Actuation, float]:
 
 def run_edge_node(brain: AMRBrain, transport: PeerTransport, hardware: HardwareIO,
                   cfg: Config = DEFAULT, duration_s: float | None = None,
-                  sensor_timeout_s: float = 0.25,
+                  sensor_timeout_s: float = 0.20,
                   startup_sensor_wait_s: float = 5.0,
                   clock_offset_s: float = 0.0,
                   terminal_journal: TerminalJournal | None = None,
                   notifier: SystemdNotifier | None = None) -> dict:
     """Run the real-time 50 Hz loop until interrupted or ``duration_s`` elapses."""
+    if not math.isfinite(sensor_timeout_s) or sensor_timeout_s <= 0.0:
+        raise ValueError("sensor_timeout_s must be positive and finite")
+    if not math.isfinite(startup_sensor_wait_s) or startup_sensor_wait_s < 0.0:
+        raise ValueError("startup_sensor_wait_s must be non-negative and finite")
     runtime = EdgeRuntime(brain, transport, cfg, terminal_journal)
     stop_requested = False
 
@@ -453,6 +457,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--actuator-host", default="127.0.0.1")
     parser.add_argument("--actuator-port", type=int, required=True)
     parser.add_argument("--duration", type=float)
+    parser.add_argument("--sensor-timeout", type=float, default=0.20)
     parser.add_argument("--startup-sensor-wait", type=float, default=5.0)
     parser.add_argument("--clock-offset", type=float, default=0.0)
     parser.add_argument("--psk-env", default="SIH_FLEET_PSK")
@@ -548,6 +553,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     report = run_edge_node(
         brain, transport, hardware, cfg=cfg, duration_s=args.duration,
+        sensor_timeout_s=args.sensor_timeout,
         startup_sensor_wait_s=args.startup_sensor_wait,
         clock_offset_s=args.clock_offset,
         terminal_journal=terminal_journal,
