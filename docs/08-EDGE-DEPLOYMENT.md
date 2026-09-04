@@ -53,7 +53,10 @@ The claim in `requirements.txt:1` — that the agent core is stdlib-only so "the
 
 `pyproject.toml:11` declares `dependencies = []`, which is correct. The agent path therefore needs only a CPython interpreter (`pyproject.toml:10` requires >= 3.10) and the repository, which is what "no build step" means: no compiler, no wheels, no `pip install` on the robot.
 
-**Contradiction found — `requirements.txt` is wrong in both directions.** It pins `websockets>=12,<16` and `matplotlib>=3.8,<4` (`requirements.txt:4-5`) and describes them as serving "the dashboard bridge and the report plots". Neither package is imported anywhere in the repository: a search across `src/`, `backend/`, `tools/`, `tests/` and the root scripts returns matches only in `requirements.txt:4-5` and the unused `reports` extra at `pyproject.toml:14-17`. The dashboard bridge uses `http.server`, not `websockets`. Meanwhile `numpy` and `PIL`, which *are* imported (by `tools/`), are listed nowhere. The file overstates what must be installed and understates what the asset tooling needs. This does not weaken the edge claim — it strengthens it, because the true runtime dependency count for a node is zero — but the file should be corrected before submission so a judge who runs `pip install -r requirements.txt` and greps for `matplotlib` does not conclude the comment was written aspirationally.
+**Dependency contradiction resolved.** `requirements.txt` now truthfully contains no
+runtime packages; `requirements-dev.txt` and the `dev` extra contain pytest, Ruff,
+NumPy and Pillow for tests and offline asset baking. The node, HIL proof, simulator and
+dashboard remain standard-library-only.
 
 ---
 
@@ -194,6 +197,7 @@ sudo -u sih-fleet python3 -m venv /opt/sih-fleet/.venv
 # 3. Per-robot configuration, root-only.
 sudo install -d -m 0755 /etc/sih-fleet
 sudo cp /opt/sih-fleet/config/edge-node.example.env /etc/sih-fleet/AMR01.env
+sudo cp /opt/sih-fleet/config/site.example.json /etc/sih-fleet/site.json
 sudo nano /etc/sih-fleet/AMR01.env          # set PSK, ROBOT_INDEX, NETWORK_INTERFACE
 sudo chmod 600 /etc/sih-fleet/AMR01.env
 
@@ -209,25 +213,15 @@ journalctl -u sih-edge-node@AMR01 -f
 
 The same `SIH_FLEET_PSK` value must appear in every robot's env file; a mismatched key produces `auth_failed` counts in the transport stats (`src/transport.py:276-277`) and total coordination silence rather than a visible error.
 
-### Defect: the completion journal is unwritable under the shipped sandbox
+### Deployment hardening update
 
-The `ExecStart` at `deploy/systemd/sih-edge-node@.service:12-17` passes `--report` but **not** `--terminal-journal`, and the env file sets no `XDG_STATE_HOME`. The journal path therefore falls back to `Path.home()/".local"/"state"/"sih-fleet-priority"` (`src/edge_runtime.py:355-359`). Combined with `ProtectHome=true` (`:23`) and `ProtectSystem=strict` (`:22`), that directory is unwritable for any service account whose home is under `/home`.
-
-The failure is delayed and therefore easy to miss in a short test:
-
-- `TerminalJournal.load()` returns `[]` when the file does not exist (`src/terminal_journal.py:90-92`), so **startup succeeds**.
-- The first time a terminal record changes — that is, the first completed task — `flush_terminal_records` calls `sync()` (`src/edge_runtime.py:126`), whose `mkdir`/write path raises `TerminalJournalError` on any `OSError` (`src/terminal_journal.py:145-147`).
-- `EdgeRuntime.flush_terminal_records` (`src/edge_runtime.py:121-128`) does not catch it, so the exception propagates out of the loop, the node exits non-zero, and `Restart=on-failure` restarts it — into the same crash on its next completed task.
-
-The install command in step 1 above pins `--home-dir /var/lib/sih-fleet`, which is inside `ReadWritePaths` and avoids the defect. That is a workaround, not a fix. The one-line fix is to make the path explicit in the unit:
-
-```ini
-ExecStart=... --terminal-journal /var/lib/sih-fleet/%i-terminal.json
-```
-
-`archive/EDGE_DEPLOYMENT.md` (the runbook this document supersedes) says only "Create a dedicated `sih-fleet` user" without specifying the home directory, so following it literally with a default `useradd` reproduces the crash loop. Status: **defect present in the committed unit at the time of writing; not fixed by this document.**
-
-A secondary robustness note from the same code path: if `runtime.close()` raises at `src/edge_runtime.py:308`, then `hardware.close()` (`:309`) and the signal-handler restore (`:310-311`) are skipped. The final `safety_stop` was already written at `:306`, so the robot is left safe, but the sockets leak on the way out.
+The completion-journal crash is fixed: the unit passes
+`--terminal-journal /var/lib/sih-fleet/%i-terminal.json` and uses
+`StateDirectory=sih-fleet`. It now runs as `Type=notify`, sends readiness and watchdog
+heartbeats using the standard-library `SystemdNotifier`, and declares
+`WatchdogSec=5s`. A live-but-hung process is therefore restarted instead of remaining
+undetected. Shutdown cleanup is nested so the final stop command, peer transport close,
+hardware socket close and signal restoration are attempted even when persistence fails.
 
 ---
 
@@ -277,7 +271,13 @@ python3 edge_node.py --robot-id AMR01 --robot-index 0 --robots 3 \
 
 Use the board's real NIC address, not `127.0.0.1` — with `0.0.0.0` the kernel picks an interface and multi-host multicast may silently select the wrong one. The switch or AP must pass the administratively scoped group `239.26.1.23` on UDP `26123`; consumer APs commonly have IGMP snooping or multicast-to-unicast conversion enabled, which is the single most likely cause of a fleet that starts cleanly and then never hears anyone.
 
-**Honest gap:** `edge_node.py` will not do anything visible on its own. It binds `--sensor-port` and waits, and with no frames arriving it emits `safety_stop` every tick and increments `sensor_timeouts` (`src/edge_runtime.py:292-295`). There is **no sensor feeder in the repository** — `UdpJsonHardwareIO` (`src/edge_runtime.py:151`) is constructed only inside `main()` (`src/edge_runtime.py:384`), is referenced by no test, and no checked-in script sends to a sensor port. Running across N Pis therefore requires the operator to supply a driver, a ROS2 bridge, or a small feeder script emitting the schema in [§9](#9-sensor-and-localization-contract). Classification of the JSON/UDP hardware bridge: **implemented; the frame parser `sensors_from_dict` is unit-tested (`tests/test_edge_runtime.py:65`), the socket path is not exercised by any test.**
+**Closed-loop status:** `hil_demo.py` is now the checked-in sensor feeder and physics
+referee. It launches the public `edge_node.py` executable, sends the documented sensor
+schema over UDP, receives actuator UDP and applies the result to `World`. The socket
+path is covered by `tests/test_hil_demo.py`; `deployment_acceptance.py` additionally
+forces sensor loss and requires a bounded fail-safe stop and recovery. A real vendor
+driver or ROS 2/CAN/serial bridge remains necessary to replace the digital referee on a
+physical AMR.
 
 ### What a judge sees
 
@@ -457,10 +457,10 @@ What is genuinely established:
 | N robots run as N independent OS processes with real authenticated UDP multicast and unrelated clock epochs | Implemented and tested — `tests/test_edge_runtime.py:80`, passing |
 | Zero robot-robot contacts in the multi-process run | Measured, on a laptop — `src/distributed_demo.py:287` |
 | Per-tick cost fits inside 20 ms with 6.2x-66x headroom | Measured, on a laptop |
-| Stale or missing sensor frames produce an explicit stop | Implemented (`src/edge_runtime.py:292-295`); the parser is tested, the socket path is not |
-| A hardened per-robot systemd service exists | Implemented, never installed on a real board, and carries the journal-path defect in [§4](#4-systemd-deployment) |
+| Stale or missing sensor frames produce an explicit stop | Implemented and closed-loop tested through UDP, including loss and recovery |
+| A hardened per-robot systemd service exists | Implemented with explicit state path and a systemd watchdog; not installed on a real board |
 | Per-node CPU / RAM / sustained 50 Hz **on a Pi or Nano** | **Not measured. Estimated only.** |
-| The JSON/UDP bridge driving real motors or a real lidar | **Never run.** No sensor source exists in the repository. |
+| The JSON/UDP bridge driving the digital warehouse | **Implemented and measured.** Physical motors/lidar remain untested. |
 
 ### Closing the gap
 
@@ -477,7 +477,9 @@ The work is small and fully specified; only the hardware is missing.
    ```
    Three nodes on one Pi is a *harder* test than one node per Pi, because they contend for the same cores. Do not pass `--no-realtime`.
 5. Commit `artifacts/edge-demo-pi5.json` unaltered. It already contains `platform`, `python`, `pid`, `cpu_time_s`, `max_rss_mb`, loop mean/p95/p99/max, `deadline_misses`, `sensor_timeouts` and the full transport counters (`src/distributed_demo.py:68-75`, `src/edge_runtime.py:130-142`) — every field a reviewer would ask for, without editing.
-6. For the multi-board claim, repeat across three Pis on one AP using `edge_node.py`, and capture the multicast traffic per [§5](#5-the-multi-process-udp-demonstration). This step additionally requires writing a sensor feeder, which does not exist today.
+6. For the multi-board claim, run `deployment_acceptance.py` on a Pi, then place one
+   `edge_node.py` on each of three Pis and connect them to the checked-in HIL referee or
+   a vendor driver. Capture multicast traffic per [§5](#5-the-multi-process-udp-demonstration).
 
 Steps 1-5 take under an hour with a board in hand and would replace the entire estimate section with measurement.
 
@@ -520,15 +522,15 @@ Five obligations fall on the integrator, and they are where a real deployment wo
 | `AMRBrain` shared between benchmark and node | Implemented and tested |
 | Stdlib-only agent path, no build step | Verified |
 | `EdgeRuntime` 50 Hz loop, absolute-deadline scheduling | Implemented and measured |
-| Sensor-staleness safety stop | Implemented; parser tested, socket path untested |
-| Signal-driven clean shutdown with final stop command | Implemented, not covered by a test |
+| Sensor-staleness safety stop | Implemented and closed-loop tested through socket loss/recovery |
+| Signal-driven clean shutdown with final stop command | Implemented and exercised by HIL subprocess termination |
 | `UdpMulticastTransport` (real authenticated multicast, replay window) | Implemented and tested |
 | Multi-process launcher `src/distributed_demo.py` | **Implemented and tested** (contradicts stale earlier notes) |
-| `UdpJsonHardwareIO` JSON/UDP driver bridge | Implemented, never exercised end-to-end |
-| Sensor feeder / real robot driver | Not implemented |
-| Real warehouse map and WMS ingestion | Not implemented |
-| systemd template unit | Implemented, never installed on a real board, one known defect |
-| Liveness watchdog / degradation ladder | Not implemented |
+| `UdpJsonHardwareIO` JSON/UDP driver bridge | Implemented and exercised end-to-end |
+| Digital sensor feeder | Implemented in `src/hil_demo.py`; real vendor driver remains |
+| Real warehouse map and WMS ingestion contract | Implemented and validated; no vendor WMS adapter tested |
+| systemd template unit | Hardened with state path and watchdog; never installed on a real board |
+| Process liveness watchdog | Implemented for systemd; not measured on a Pi |
 | Pi / Jetson CPU, RAM, sustained-rate figures | **Estimated only — never measured on target hardware** |
 
 ## Related documents

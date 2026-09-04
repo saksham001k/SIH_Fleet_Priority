@@ -11,13 +11,11 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-reports = [
-  "matplotlib>=3.8,<4",
-  "websockets>=12,<16",
-]
 dev = [
   "pytest>=8,<10",
   "ruff>=0.12,<1",
+  "numpy>=1.26,<3",
+  "Pillow>=10,<13",
 ]
 
 [project.scripts]
@@ -25,7 +23,10 @@ sih-run = "src.main:main"
 sih-benchmark = "src.benchmark:main"
 sih-fault-campaign = "src.fault_campaign:main"
 sih-edge-demo = "src.distributed_demo:main"
+sih-hil-demo = "src.hil_demo:main"
 sih-edge-node = "src.edge_runtime:main"
+sih-task-injector = "src.task_injector:main"
+sih-deployment-acceptance = "src.deployment_acceptance:main"
 sih-auction-v2-campaign = "src.auction_v2_campaign:main"
 sih-baseline-comparison = "src.baseline_comparison:main"
 

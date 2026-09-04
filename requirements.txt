@@ -1,5 +1,3 @@
-# The simulation core and the benchmark suite are stdlib-only, on purpose:
-# the agent node must drop onto a bare Raspberry Pi image without a build step.
-# Everything below serves the dashboard bridge and the report plots only.
-websockets>=12,<16
-matplotlib>=3.8,<4
+# Production runtime requirements: none beyond Python >= 3.10.
+# The simulator, dashboard, edge node, HIL proof, and benchmark are stdlib-only.
+# Development tests and offline asset-baking dependencies live in requirements-dev.txt.

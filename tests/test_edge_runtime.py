@@ -6,7 +6,8 @@ import pytest
 
 from src.amr import AMRBrain, POLICY_BIOS_PIBT_V3, POLICY_BIOS_PIBT_V6
 from src.distributed_demo import run_distributed_demo
-from src.edge_runtime import EdgeRuntime, build_parser, sensors_from_dict
+from src.edge_runtime import (EdgeRuntime, SystemdNotifier, actuation_from_dict,
+                              build_parser, sensors_from_dict, sensors_to_dict)
 from src.environment import open_floor
 from src.settings import DEFAULT
 from src.world import World
@@ -75,6 +76,40 @@ def test_hardware_sensor_schema_rejects_non_finite_values():
     frame["on_dock"] = "false"
     with pytest.raises(ValueError):
         sensors_from_dict(frame)
+
+
+def test_hardware_contract_round_trips_world_sensor_and_validates_actuation():
+    env = open_floor(8, 8)
+    world = World(env, DEFAULT, seed=4)
+    world.add_robot("A", (1, 1))
+    sensors = world.sense("A")
+
+    decoded = sensors_from_dict(sensors_to_dict(sensors))
+    assert decoded.pose == sensors.pose
+    assert decoded.cell == sensors.cell
+    assert decoded.battery_frac == sensors.battery_frac
+    assert len(decoded.detections) == len(sensors.detections)
+
+    actuation, timestamp = actuation_from_dict({
+        "v": 0.5, "omega": -0.2, "safety_stop": False, "t": 123.0,
+    })
+    assert actuation.v == 0.5
+    assert actuation.omega == -0.2
+    assert not actuation.safety_stop
+    assert timestamp == 123.0
+
+    with pytest.raises(ValueError):
+        actuation_from_dict({
+            "v": 0.0, "omega": 0.0, "safety_stop": 0, "t": 0.0,
+        })
+
+
+def test_systemd_notifier_is_a_safe_noop_without_socket():
+    notifier = SystemdNotifier(address="")
+
+    assert not notifier.notify("READY=1")
+    assert notifier.sent == 0
+    assert notifier.failed == 0
 
 
 def test_three_real_processes_exchange_authenticated_multicast():

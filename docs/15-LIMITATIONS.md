@@ -23,10 +23,12 @@ returned zero matches — there is no marker-based backlog to report.
 
 ## 1. Structural limits
 
-### 1.1 This is a simulation. Nothing has run on physical hardware.
+### 1.1 Closed-loop deployment is tested, but physical hardware is not
 
-No part of this system has executed on a Raspberry Pi, a Jetson, or any device other
-than the development machine. The hardware capability table in
+No part of this system has executed on a Raspberry Pi, a Jetson, or a commercial AMR.
+The public edge executable has now been exercised closed-loop through its real UDP
+sensor/actuator boundary by `deployment_acceptance.py`, so the earlier “socket path
+untested” limitation is closed. The hardware capability table in
 [08. Edge Deployment](08-EDGE-DEPLOYMENT.md) is explicitly labelled ESTIMATE for exactly
 this reason: every millisecond and every watt figure in it comes from timing the same
 code on different hardware classes analytically, not from a board on a bench.
@@ -55,11 +57,11 @@ reading `src/amr.py`, but the performance argument (fits in a Pi's CPU/RAM budge
 required rate) is an estimate, not a measurement. It does not affect requirement 19 or 20
 directly, since both are defined and measured entirely in-simulation.
 
-**What it would take to close:** port `edge_node.py`/`edge_runtime.py` to run unmodified
-on a Pi 4 and a Jetson Orin Nano, replace the in-process transport with the real UDP
-multicast socket path (`src/transport.py:241`) across an actual LAN or ad-hoc mesh, and
-re-run the acceptance benchmark measuring wall-clock tick time, packet loss, and CPU/RAM
-against the ESTIMATE table in [08. Edge Deployment](08-EDGE-DEPLOYMENT.md).
+**What it would take to close:** run `deployment_acceptance.py` unmodified on a Pi and
+then across three boards, replace the checked-in digital referee with a vendor adapter,
+and re-run the gate while measuring loop timing, packet loss, CPU/RAM, controller
+watchdog behavior and physical stopping distance. See
+[18. Real AMR Integration](18-REAL-AMR-INTEGRATION.md).
 
 ### 1.2 Zero observed contacts is not a proven zero rate
 
@@ -151,10 +153,10 @@ this session.
 | 2.4 | The acceptance benchmark has no pedestrians | `src/scenarios.py:350-351`, `:577-578` | No | Yes — human-robot bound is vacuous |
 | 2.5 | Block-based chokepoint control never fires on the standard map | `src/settings.py:152`, corridor histogram below | No | No (mechanism unused, not unsafe) |
 | 2.6 | `manager_dies` fault scenario is inert under the default policy | `src/main.py:165-172`, `:226` | No | No |
-| 2.7 | The systemd unit crash-loops after the first completed task | `deploy/systemd/sih-edge-node@.service` | No | No (deployment-only) |
+| 2.7 | **Resolved:** systemd journal path and hung-process watchdog | `deploy/systemd/sih-edge-node@.service` | Closed | No |
 | 2.8 | A cost-optimal plan can still reverse out of a chokepoint it entered | `src/environment.py:171` | No | No (efficiency, not safety) |
 | 2.9 | `plan_calls` undercounts real A* search work | `src/amr.py:4045-4050` | No | No, but weakens the edge-feasibility argument |
-| 2.10 | `requirements.txt` is wrong in both directions | `requirements.txt` | No | No |
+| 2.10 | **Resolved:** runtime is dependency-free; dev/asset dependencies are separate | `requirements.txt`, `requirements-dev.txt` | Closed | No |
 | 2.11 | Dashboard coverage gap: no test loads the dashboard page | `tests/` (see [13. Testing](13-TESTING.md#52-no-test-loads-the-dashboard-page)) | No | No |
 | 2.12 | `POST /api/run` silently truncates long scenarios to defaults | `backend/server.py:174-197` | No | No |
 | 2.13 | Stale documentation: commit hash, default policy claims, priority-vs-deadline ordering claim, non-existent `main.py` | `archive/SIH_ACCEPTANCE_BENCHMARK.md:95`, `archive/BIOS6_EXPERIMENTAL_BOUNDED_FUTURE_AUCTION.md:3,213-218`, `archive/BIOS_PIBT_5_ENERGY_AUCTION.md:5,39,64`, `README.md:188` | No | No |
@@ -267,21 +269,12 @@ selected under a policy that builds no manager, or extend the guard's intent
 (demonstrating resilience to a central point of failure) to also cover a decentralized
 policy's own single points of failure, if any exist.
 
-### 2.7 The systemd unit crash-loops on the first completed task
+### 2.7 Resolved: service persistence and liveness
 
-`deploy/systemd/sih-edge-node@.service` invokes `edge_node.py` without
-`--terminal-journal`. `src/edge_runtime.py:349-358` falls back, in that case, to
-`$XDG_STATE_HOME` or `~/.local/state/sih-fleet-priority/<robot-id>-terminal.json`. The
-unit sets `ProtectSystem=strict` and `ProtectHome=true`, which make both the real home
-directory and most of the filesystem read-only to the service — `~/.local/state` is not
-in the unit's `ReadWritePaths=/var/lib/sih-fleet`. Startup succeeds silently because
-`TerminalJournal.load()` returns `[]` when the path is unreachable at read time in the
-observed code path; the failure surfaces only when the first task completes and
-`flush_terminal_records` (`src/edge_runtime.py:121`) attempts to persist a record through
-an uncaught `TerminalJournalError`, which crashes the process. `Restart=on-failure` then
-loops it indefinitely against the same unwritable path. **Fix:** add `--terminal-journal
-/var/lib/sih-fleet/%i-terminal.json` (inside the already-writable `ReadWritePaths`) to the
-unit's `ExecStart`.
+The unit now passes an explicit terminal journal under `/var/lib/sih-fleet`, declares a
+systemd state directory, sends readiness/watchdog notifications and sets
+`WatchdogSec=5s`. The old first-completion crash path and undetected hung-process gap are
+closed in code. Installation and watchdog timing on a physical Pi remain unmeasured.
 
 ### 2.8 A cost-optimal plan can reverse out of the chokepoint it just entered
 
@@ -316,25 +309,11 @@ smaller than stated. **Fix:** route `_bid_cost` and `_energy_required`'s A* call
 the same counted entry point as route planning, or maintain a separate counter for
 bid-evaluation search and publish both.
 
-### 2.10 `requirements.txt` is wrong in both directions
+### 2.10 Resolved: dependency manifests
 
-```
-websockets>=12,<16
-matplotlib>=3.8,<4
-```
-
-Neither package is imported anywhere in the repository (searched by both grep and AST
-import inspection). Conversely, `numpy` and `PIL` are imported and used by
-`tools/bake_brand_assets.py` and `tools/bake_twin_textures.py` but are absent from
-`requirements.txt`. The stdlib-only claim — that `src/`, `backend/`, and the root
-scripts run on a bare Python install with no dependencies, which matters because the
-edge node must drop onto a Raspberry Pi image without a build step (`requirements.txt`'s
-own header comment states this intent) — is true for those directories and is AST-verified,
-not just grepped. The file is simply stale for the asset-baking tools it was never scoped
-to describe. **Fix:** move `numpy`/`PIL` into a `requirements-dev.txt`-style optional
-group (a `requirements-dev.txt` already exists in the repo and is the natural home), and
-drop `websockets`/`matplotlib` or gate them behind a comment explaining what still needs
-them, if anything does.
+`requirements.txt` now correctly states that production runtime dependencies are empty.
+Pytest, Ruff, NumPy and Pillow live in `requirements-dev.txt` and the `dev` extra. The
+edge node, HIL proof, simulator and dashboard remain standard-library-only.
 
 ### 2.11 Dashboard test coverage gap
 

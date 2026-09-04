@@ -28,6 +28,7 @@ from typing import Protocol
 from .amr import AMRBrain, POLICY_BIOS_PIBT_V6, Task
 from .scenarios import SCENARIOS
 from .settings import DEFAULT, Config
+from .site_config import SiteConfigError, load_site_config
 from .task_allocation import ALLOCATION_AUCTION, ALLOCATION_PREASSIGNED
 from .terminal_journal import TerminalJournal, TerminalJournalError
 from .transport import DEFAULT_GROUP, DEFAULT_PORT, UdpMulticastTransport
@@ -50,6 +51,32 @@ class HardwareIO(Protocol):
 
     def write_actuation(self, actuation: Actuation, t: float) -> None: ...
     def close(self) -> None: ...
+
+
+class SystemdNotifier:
+    """Minimal stdlib implementation of systemd's readiness/watchdog protocol."""
+
+    def __init__(self, address: str | None = None) -> None:
+        self.address = os.environ.get("NOTIFY_SOCKET") if address is None else address
+        self.sent = 0
+        self.failed = 0
+
+    def notify(self, state: str) -> bool:
+        if not self.address:
+            return False
+        address = self.address
+        if address.startswith("@"):
+            address = "\0" + address[1:]
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        try:
+            sock.sendto(state.encode("utf-8"), address)
+            self.sent += 1
+            return True
+        except OSError:
+            self.failed += 1
+            return False
+        finally:
+            sock.close()
 
 
 @dataclass
@@ -263,11 +290,62 @@ def sensors_from_dict(data: object) -> Sensors:
     )
 
 
+def sensors_to_dict(sensors: Sensors) -> dict:
+    """Encode the vendor-neutral sensor contract using JSON-safe SI units.
+
+    Keeping the inverse next to :func:`sensors_from_dict` prevents a simulator,
+    hardware-in-the-loop referee, or vendor adapter from quietly drifting away from
+    the packet schema consumed by a deployed edge node.
+    """
+    return {
+        "pose": list(sensors.pose),
+        "v": sensors.v,
+        "omega": sensors.omega,
+        "battery_frac": sensors.battery_frac,
+        "cell": list(sensors.cell),
+        "clearance_m": sensors.clearance_m,
+        "clearance_static_m": sensors.clearance_static_m,
+        "clearance_dynamic_m": sensors.clearance_dynamic_m,
+        "clearance_omni_m": sensors.clearance_omni_m,
+        "detections": [
+            {
+                "x": detection.x,
+                "y": detection.y,
+                "r": detection.r,
+                "range_m": detection.range_m,
+                "vx": detection.vx,
+                "vy": detection.vy,
+            }
+            for detection in sensors.detections
+        ],
+        "on_dock": sensors.on_dock,
+    }
+
+
+def actuation_from_dict(data: object) -> tuple[Actuation, float]:
+    """Validate one actuator packet returned by a deployed BIOS edge node."""
+    if not isinstance(data, dict):
+        raise TypeError("actuator frame must be an object")
+    safety_stop = data["safety_stop"]
+    if not isinstance(safety_stop, bool):
+        raise ValueError("safety_stop must be a boolean")
+    return (
+        Actuation(
+            v=_finite(data["v"], -20.0, 20.0),
+            omega=_finite(data["omega"], -100.0, 100.0),
+            safety_stop=safety_stop,
+        ),
+        _finite(data["t"], -1e12, 1e12),
+    )
+
+
 def run_edge_node(brain: AMRBrain, transport: PeerTransport, hardware: HardwareIO,
                   cfg: Config = DEFAULT, duration_s: float | None = None,
                   sensor_timeout_s: float = 0.25,
+                  startup_sensor_wait_s: float = 5.0,
                   clock_offset_s: float = 0.0,
-                  terminal_journal: TerminalJournal | None = None) -> dict:
+                  terminal_journal: TerminalJournal | None = None,
+                  notifier: SystemdNotifier | None = None) -> dict:
     """Run the real-time 50 Hz loop until interrupted or ``duration_s`` elapses."""
     runtime = EdgeRuntime(brain, transport, cfg, terminal_journal)
     stop_requested = False
@@ -279,11 +357,41 @@ def run_edge_node(brain: AMRBrain, transport: PeerTransport, hardware: HardwareI
     old_int = signal.signal(signal.SIGINT, request_stop)
     old_term = signal.signal(signal.SIGTERM, request_stop)
     period = 1.0 / cfg.rates.safety_hz
+    notifier = notifier or SystemdNotifier()
+    waiting_started = time.monotonic()
+    next_watchdog = waiting_started
+    initial_sensor_ready = False
+    while (not stop_requested
+           and time.monotonic() - waiting_started < startup_sensor_wait_s):
+        now = time.monotonic()
+        sensors, received_at = hardware.read_sensors()
+        if (sensors is not None and received_at is not None
+                and now - received_at <= sensor_timeout_s):
+            initial_sensor_ready = True
+            break
+        hardware.write_actuation(
+            Actuation(v=0.0, omega=0.0, safety_stop=True), clock_offset_s,
+        )
+        if now >= next_watchdog:
+            notifier.notify("WATCHDOG=1\nSTATUS=Waiting safely for first sensor frame")
+            next_watchdog = now + 1.0
+        time.sleep(period)
+    notifier.notify(
+        "READY=1\nSTATUS=" + (
+            "BIOS edge node active with fresh sensors"
+            if initial_sensor_ready
+            else "BIOS edge node active in sensor fail-safe"
+        )
+    )
     started = time.monotonic()
     next_tick = started
+    next_watchdog = started
     try:
         while not stop_requested:
             now = time.monotonic()
+            if now >= next_watchdog:
+                notifier.notify("WATCHDOG=1\nSTATUS=BIOS control loop healthy")
+                next_watchdog = now + 1.0
             elapsed = now - started
             if duration_s is not None and elapsed >= duration_s:
                 break
@@ -303,14 +411,26 @@ def run_edge_node(brain: AMRBrain, transport: PeerTransport, hardware: HardwareI
             next_tick += period
             time.sleep(max(0.0, next_tick - time.monotonic()))
     finally:
-        hardware.write_actuation(Actuation(safety_stop=True),
-                                  clock_offset_s + time.monotonic() - started)
-        runtime.close()
-        hardware.close()
-        signal.signal(signal.SIGINT, old_int)
-        signal.signal(signal.SIGTERM, old_term)
+        notifier.notify("STOPPING=1\nSTATUS=BIOS edge node stopping safely")
+        try:
+            hardware.write_actuation(
+                Actuation(safety_stop=True),
+                clock_offset_s + time.monotonic() - started,
+            )
+        finally:
+            try:
+                runtime.close()
+            finally:
+                hardware.close()
+                signal.signal(signal.SIGINT, old_int)
+                signal.signal(signal.SIGTERM, old_term)
     report = runtime.report()
     report["hardware"] = dict(getattr(hardware, "stats", {}))
+    report["service_notify"] = {
+        "enabled": bool(notifier.address),
+        "sent": notifier.sent,
+        "failed": notifier.failed,
+    }
     return report
 
 
@@ -319,7 +439,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--robot-id", required=True)
     parser.add_argument("--robot-index", type=int, required=True)
     parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="dense_aisles")
-    parser.add_argument("--robots", type=int, default=4)
+    parser.add_argument("--site-config",
+                        help="validated facility map and AMR profile JSON")
+    parser.add_argument("--robots", type=int)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--policy", default=POLICY_BIOS_PIBT_V6)
     parser.add_argument("--allocation-policy", default=ALLOCATION_AUCTION)
@@ -331,6 +453,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--actuator-host", default="127.0.0.1")
     parser.add_argument("--actuator-port", type=int, required=True)
     parser.add_argument("--duration", type=float)
+    parser.add_argument("--startup-sensor-wait", type=float, default=5.0)
     parser.add_argument("--clock-offset", type=float, default=0.0)
     parser.add_argument("--psk-env", default="SIH_FLEET_PSK")
     parser.add_argument("--allow-unauthenticated", action="store_true")
@@ -345,10 +468,43 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if not 0 <= args.robot_index < args.robots:
+    deployment = None
+    if args.site_config:
+        try:
+            site = load_site_config(args.site_config)
+        except SiteConfigError as exc:
+            raise SystemExit(f"refusing invalid site configuration: {exc}") from exc
+        robots = args.robots if args.robots is not None else len(site.starts)
+        if robots != len(site.starts):
+            raise SystemExit(
+                "--robots must equal the number of starts in --site-config"
+            )
+        environment = site.environment
+        starts = site.starts
+        cfg = site.config
+        deployment = {
+            "source": "site_config",
+            "fleet_id": site.fleet_id,
+            "map_name": site.environment.name,
+            "map_version": site.map_version,
+            "map_frame": site.map_frame,
+            "robot_model": site.robot_model,
+            "site_fingerprint_sha256": site.fingerprint,
+        }
+    else:
+        robots = args.robots if args.robots is not None else 4
+        scenario = SCENARIOS[args.scenario](n_robots=robots, seed=args.seed)
+        environment = scenario.env
+        starts = scenario.starts
+        cfg = DEFAULT
+        deployment = {
+            "source": "built_in_scenario",
+            "scenario": args.scenario,
+            "seed": args.seed,
+        }
+    if not 0 <= args.robot_index < robots:
         raise SystemExit("--robot-index must be within the configured fleet")
-    scenario = SCENARIOS[args.scenario](n_robots=args.robots, seed=args.seed)
-    start = scenario.starts[args.robot_index]
+    start = starts[args.robot_index]
     if args.terminal_journal:
         journal_path = Path(args.terminal_journal)
     else:
@@ -364,11 +520,16 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(
             f"refusing to start with an invalid terminal journal: {exc}") from exc
     brain = AMRBrain(
-        args.robot_id, scenario.env, DEFAULT, policy=args.policy, home=start,
+        args.robot_id, environment, cfg, policy=args.policy, home=start,
         allocation_policy=args.allocation_policy,
         terminal_records=terminal_records,
     )
     if args.allocation_policy == ALLOCATION_PREASSIGNED:
+        if args.site_config:
+            raise SystemExit(
+                "preassigned allocation is unavailable with --site-config; "
+                "inject live tasks using auction or auction_bundle"
+            )
         brain.queue = [Task(**task.__dict__)
                        for task in scenario.assignments[args.robot_index]]
     secret = os.environ.get(args.psk_env)
@@ -386,10 +547,12 @@ def main(argv: list[str] | None = None) -> int:
         args.actuator_host, args.actuator_port,
     )
     report = run_edge_node(
-        brain, transport, hardware, duration_s=args.duration,
+        brain, transport, hardware, cfg=cfg, duration_s=args.duration,
+        startup_sensor_wait_s=args.startup_sensor_wait,
         clock_offset_s=args.clock_offset,
         terminal_journal=terminal_journal,
     )
+    report["deployment"] = deployment
     encoded = json.dumps(report, indent=2, sort_keys=True)
     if args.report:
         Path(args.report).write_text(encoded + "\n", encoding="utf-8")

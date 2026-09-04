@@ -24,7 +24,7 @@ python --version
 # 2. Dependencies (editable install, pulls in pytest/ruff and the report extras)
 python -m pip install -e ".[dev]"
 
-# 3. Full regression suite. 228 tests, ~7 minutes on this machine.
+# 3. Full regression suite. Current deployment branch collects 244 tests.
 python -m pytest -q
 
 # 4. Python compiles cleanly (catches a syntax error a linter might not gate on)
@@ -35,15 +35,36 @@ python -m compileall -q src backend *.py
 for f in $(find frontend/js -name '*.js'); do node --check "$f" || echo "FAIL: $f"; done
 ```
 
-Expected output: `228 passed in ...s`, silent success from `compileall`, and no `FAIL:`
+Expected output: `244 passed in ...s`, silent success from `compileall`, and no `FAIL:`
 lines from the Node loop. If any of these fail on the demo machine, stop and fix it —
 none of what follows is trustworthy on top of a broken base.
+
+### Deployment proof pre-flight
+
+Run the real process/socket acceptance gate once and keep its JSON:
+
+```bash
+python deployment_acceptance.py --duration 20
+```
+
+The concise terminal verdict must be `BIOS DEPLOYMENT ACCEPTANCE: PASS`. It verifies
+three public edge-node executables, the UDP sensor/actuator boundary, authenticated peer
+traffic, Auction V2 doing work, zero measured contacts, deadline timing, sensor-loss
+stop/recovery, controller command timeout, wrong-key rejection, replay rejection and
+site/task validation. The full result is written to
+`artifacts/deployment/deployment-acceptance.json`.
+
+This is the answer when a judge asks how BIOS reaches a purchased AMR. Open
+[18. Real AMR Integration](18-REAL-AMR-INTEGRATION.md), show the boundary diagram, then
+show the JSON's `claims.proved` and `claims.not_proved`. Do not call a laptop run a Pi
+test; the artifact records `raspberry_pi_tested: false` unless a real Linux device tree
+identifies the board.
 
 **A finding worth correcting here.** An earlier note claimed the test suite fails if a
 dashboard is already running on port 8000. That is not true of this tree: `tests/test_server.py`
 and every other server-touching test binds an **ephemeral** port (`("127.0.0.1", 0)`),
 never 8000. Verified directly: with `python backend/server.py` bound to 8000 in the
-background, `python -m pytest -q` still reports `228 passed`. The real reason to check the
+background, `python -m pytest -q` still passes. The real reason to check the
 port is narrower and still worth doing — see the last checklist item below.
 
 ```bash

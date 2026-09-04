@@ -25,6 +25,7 @@ python -m pip install -e ".[dev]"
 python -m pytest -q
 python backend/server.py                       # http://127.0.0.1:8000
 python edge_demo.py --robots 3 --duration 5    # real processes + signed UDP
+python deployment_acceptance.py --duration 20 # executable nodes + hardware socket proof
 python fault_campaign.py --seeds 30 --jobs 8  # loss, partition, crash recovery
 python benchmark.py --seeds 30 --jobs 8        # strict SIH acceptance gate
 python auction_v2_campaign.py --seeds 30 --jobs 8  # Auction V2 release gate
@@ -32,6 +33,31 @@ python auction_v2_campaign.py --seeds 30 --jobs 8  # Auction V2 release gate
 
 The simulation core and the benchmark have **no third-party dependencies** — stdlib
 only, so a robot node drops onto a bare Raspberry Pi image with no build step.
+
+## Real-AMR deployment boundary
+
+`edge_node.py` is the process installed on each AMR's Raspberry Pi or Jetson. A
+vendor-specific driver translates the commercial controller's Ethernet, CAN, serial, or
+ROS interface into the checked JSON/UDP contract: SI-unit pose, velocity, battery,
+clearances and anonymous detections flow into BIOS; velocity, turn-rate, and fail-safe
+stop commands flow back to the vendor controller. The controller's certified safety
+chain remains authoritative.
+
+The deployment boundary is now executable end to end without buying an AMR first:
+
+```bash
+python deployment_acceptance.py --duration 20
+```
+
+That command launches one public `edge_node.py` subprocess per AMR, drives each through
+its real sensor/actuator UDP sockets, exercises authenticated multicast, Auction V2,
+wrong-key and replay rejection, and forces a sensor outage to verify a bounded stop and
+recovery. It writes machine-readable evidence to
+`artifacts/deployment/deployment-acceptance.json`. This is closed-loop
+software-in-the-loop evidence, not a claim that a physical AMR or Raspberry Pi was
+tested. Facility geometry and robot limits are supplied through
+`config/site.example.json`; announcement-only WMS jobs use `config/tasks.example.json`.
+See [`docs/18-REAL-AMR-INTEGRATION.md`](docs/18-REAL-AMR-INTEGRATION.md).
 
 ## Decentralized priority algorithm
 

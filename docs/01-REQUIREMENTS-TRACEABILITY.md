@@ -35,7 +35,7 @@ physical hardware the statement names.
 | 12 | Blocked aisle handling | **Implemented & tested** | `src/amr.py:2774` promotes stationary anonymous returns; `:2863` writes an expiring block into the local map | `tests/test_resilience.py:14` | [04 §6.2](04-PATH-PLANNING.md) |
 | 13 | Re-routing | **Implemented & tested** | `_replan` at `src/amr.py:2693`, reached from 22 trigger sites | `tests/test_resilience.py:14`, `tests/test_bios4.py:240` | [04 §6](04-PATH-PLANNING.md) |
 | 14 | Task re-assignment | **Implemented & tested** | `src/amr.py:4690`, `:4727` — lease expiry returns the task to the pool | `tests/test_resilience.py:27` | [06 §5](06-TASK-ALLOCATION.md) |
-| 15 | Edge / local execution | **Implemented, hardware unverified** | `src/edge_runtime.py:266`; `pyproject.toml:11` declares zero runtime dependencies, AST-verified stdlib-only | `tests/test_edge_runtime.py:49`, `:80` | [08](08-EDGE-DEPLOYMENT.md) |
+| 15 | Edge / local execution | **Implemented & closed-loop tested; target hardware unverified** | `src/edge_runtime.py` runs one node; `src/hil_demo.py` launches the public executable and crosses the JSON/UDP hardware boundary; `src/site_config.py` loads a real facility/profile | `tests/test_edge_runtime.py`, `tests/test_hil_demo.py`, `tests/test_site_config.py` | [08](08-EDGE-DEPLOYMENT.md), [18](18-REAL-AMR-INTEGRATION.md) |
 | 16 | Fleet dashboard | **Implemented & tested** | `frontend/index.html:27`, served by `backend/server.py:790` with no build step | `tests/test_server.py:72`, `tests/test_dashboard.py:249` | [09](09-DASHBOARD.md) |
 | 17 | Real-time positions on dashboard | **Implemented & tested** | 10 Hz telemetry `src/world.py:879`; rendered `frontend/js/main.js:922` | `tests/test_dashboard.py:279`, `:396` | [09 §3](09-DASHBOARD.md) |
 | 18 | Battery status | **Implemented & tested** | On the wire as `HB.b` (`src/messages.py:462`); in telemetry `src/world.py:881`; **a decision input** at `src/amr.py:4114` | `tests/test_priority.py:134`, `:223` | [06 §4](06-TASK-ALLOCATION.md), [09 §4](09-DASHBOARD.md) |
@@ -88,13 +88,13 @@ or missing pairs rather than averaging around them.
 
 Stated here so a judge does not have to find them.
 
-**Requirement 15 is the one material gap.** The agent performs no I/O, has zero runtime
-dependencies, and the multi-process UDP runner has been executed live — three separate OS
-processes exchanging authenticated multicast, 0 deadline misses, ~28 MB RSS per node. But
-**nothing has ever run on a physical Raspberry Pi or Jetson Nano.** The per-node CPU and
-memory figures in [08. Edge Deployment](08-EDGE-DEPLOYMENT.md) are labelled ESTIMATE, and a
-calibration procedure to replace them with measurements in about an hour is given there. All
-CPU numbers in this repository are host-measured.
+**Requirement 15 still has one physical-evidence gap.** The public `edge_node.py`
+executable now runs closed-loop through the same JSON/UDP sensor and actuator sockets a
+vendor driver uses, with one independent authenticated process per AMR. The deployment
+acceptance command verifies that boundary, a sensor-staleness stop, input validation,
+and network authentication. But **nothing has yet run on a physical Raspberry Pi,
+Jetson, or commercial AMR.** All CPU numbers remain host-measured until the exact same
+gate is executed on a board. See [18. Real AMR Integration](18-REAL-AMR-INTEGRATION.md).
 
 **Requirements 16 and 17 have no scenario, and cannot.** They are properties of the service
 and the telemetry stream rather than of any simulated situation, so they are evidenced by
@@ -137,7 +137,7 @@ tests. See [13. Testing](13-TESTING.md).
 ## 4. How to verify each claim yourself
 
 ```bash
-python -m pytest tests -q                 # full suite: 228 pass, ~7 min
+python -m pytest tests -q                 # full suite: 244 tests on deployment branch
 python benchmark.py --seeds 30 --jobs 8   # the acceptance gate: exit 0 = pass, 2 = fail
 python edge_demo.py                       # three real OS processes over UDP multicast
 python backend/server.py                  # dashboard at http://127.0.0.1:8000

@@ -31,6 +31,7 @@ Full method, provenance and caveats: **[12. Benchmark and Evidence](12-BENCHMARK
 | **An evaluator checking rigour** | [14. Engineering Findings](14-FINDINGS.md) and [15. Limitations](15-LIMITATIONS.md). These are where the project is most itself |
 | **A teammate before the jury slot** | [17. Presentation Script](17-PRESENTATION-SCRIPT.md) — what to say — then [16. Demo Runbook](16-DEMO-RUNBOOK.md) — what to click |
 | **A developer** | [02. Architecture](02-ARCHITECTURE.md) → [10. HTTP API Reference](10-API-REFERENCE.md) → [13. Testing](13-TESTING.md) |
+| **An AMR integrator** | [18. Real AMR Integration](18-REAL-AMR-INTEGRATION.md) → [08. Edge Deployment](08-EDGE-DEPLOYMENT.md) → [15. Limitations](15-LIMITATIONS.md) |
 
 ---
 
@@ -56,15 +57,17 @@ Full method, provenance and caveats: **[12. Benchmark and Evidence](12-BENCHMARK
 | 15 | [Limitations](15-LIMITATIONS.md) | Every known gap, defect and overclaim risk, stated before a judge finds it |
 | 16 | [Demo Runbook](16-DEMO-RUNBOOK.md) | Pre-flight, the timed demo script, the evidence walk, and 15+ anticipated judge questions |
 | 17 | [Presentation Script](17-PRESENTATION-SCRIPT.md) | The five-minute spoken script: the words, the six points where a judge takes over, and the comparison the pitch hangs on |
+| 18 | [Real AMR Integration](18-REAL-AMR-INTEGRATION.md) | The vendor adapter, configurable site, closed-loop socket proof, Pi test, commissioning ladder, and exact claim boundary |
 
 ---
 
 ## Quick start
 
 ```bash
-python -m pytest tests -q                 # full suite: 228 pass, ~7 min
+python -m pytest tests -q                 # full suite: 244 tests on deployment branch
 python backend/server.py                  # dashboard at http://127.0.0.1:8000
 python edge_demo.py                       # three real OS processes over UDP multicast
+python deployment_acceptance.py --duration 20 # deployed executables through real I/O sockets
 python benchmark.py --seeds 30 --jobs 8   # the acceptance gate: exit 0 = pass, 2 = fail
 ```
 

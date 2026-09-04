@@ -5,6 +5,13 @@
 **Audience:** SIH judges and BEL evaluators verifying that the coordination and safety claims rest on executable evidence rather than assertion; teammates who must answer "what does that test actually prove?" under questioning.
 **Reads best after:** [12. Benchmark and Evidence](12-BENCHMARK-AND-EVIDENCE.md)
 
+> **2026-09-04 deployment update:** the current deployment branch collects **244 tests**.
+> The historical 228-test inventory below remains the provenance record for commit
+> `7740efb`; the added tests cover the socket-level HIL loop, site configuration, WMS
+> task validation, wrong-key/replay rejection, systemd notification and the
+> controller-facing command watchdog. Run `pytest --collect-only -q` for the current
+> authoritative count.
+
 ## Requirements evidenced
 
 | # | Requirement | Where | Evidence |
