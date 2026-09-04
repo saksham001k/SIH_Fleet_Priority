@@ -480,9 +480,10 @@ The work is small and fully specified; only the hardware is missing.
    ```
    Three nodes on one Pi is a *harder* test than one node per Pi, because they contend for the same cores. Do not pass `--no-realtime`.
 5. Commit `artifacts/edge-demo-pi5.json` unaltered. It already contains `platform`, `python`, `pid`, `cpu_time_s`, `max_rss_mb`, loop mean/p95/p99/max, `deadline_misses`, `sensor_timeouts` and the full transport counters (`src/distributed_demo.py:68-75`, `src/edge_runtime.py:130-142`) — every field a reviewer would ask for, without editing.
-6. For the multi-board claim, run `deployment_acceptance.py` on a Pi, then place one
-   `edge_node.py` on each of three Pis and connect them to the checked-in HIL referee or
-   a vendor driver. Capture multicast traffic per [§5](#5-the-multi-process-udp-demonstration).
+6. For the multi-board claim, run `deployment_acceptance.py` on a Pi, then add a
+   multi-host form of the local HIL feeder (not checked in yet) or a vendor driver and
+   place one `edge_node.py` on each of three Pis. Capture multicast traffic per
+   [§5](#5-the-multi-process-udp-demonstration).
 
 Steps 1-5 take under an hour with a board in hand and would replace the entire estimate section with measurement.
 

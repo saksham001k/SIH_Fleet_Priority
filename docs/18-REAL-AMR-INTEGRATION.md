@@ -152,6 +152,12 @@ motion, but it may not forward peer packets, assign tasks, decide priority, or a
 returned command. Capture UDP port 26123 to show that every coordination packet is
 robot-to-multicast-group and there is no coordination server.
 
+**Current status:** `hil_demo.py` launches all edge-node executables locally. Its packet
+contract and destination fields are suitable for a network bridge, but a multi-host
+referee launcher is not checked in yet. The three-Pi experiment therefore requires
+either that small multi-host feeder or the actual vendor adapters. Do not tell a judge
+that the current command already distributes the child processes across boards.
+
 ## 6. Commissioning ladder
 
 Do not jump from a laptop simulation to three full-speed robots.
@@ -159,8 +165,9 @@ Do not jump from a laptop simulation to three full-speed robots.
 1. Run the one-command deployment gate on the development computer.
 2. Run it unchanged on one Pi with three subprocesses; record board model, temperature,
    CPU/RAM and loop p95/p99/max.
-3. Run one edge node on each of three Pis through the digital warehouse; introduce
-   packet loss, a wrong key, sensor loss, node termination and AP loss.
+3. Add a multi-host sensor/actuator feeder, or use the first vendor adapter, then run one
+   edge node on each of three Pis through the digital warehouse; introduce packet loss,
+   a wrong key, sensor loss, node termination and AP loss.
 4. Implement one vendor adapter and replay recorded controller telemetry against it.
 5. Connect one stationary AMR with wheels disabled; validate units, coordinate frame,
    battery, scanner fields, command limits and watchdog stop.
