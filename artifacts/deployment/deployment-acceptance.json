@@ -37,7 +37,7 @@
     }
   },
   "gates": {
-    "auction_v2_completed_work": true,
+    "auction_v2_completed_all_declared_work": true,
     "authenticated_peer_communication": true,
     "contact_free_in_measured_run": true,
     "control_deadlines_met": true,
@@ -111,9 +111,9 @@
     "authenticated_transport": true,
     "claim_boundary": "Proves the executable, socket adapter, authenticated peer transport, and warehouse physics close the loop on this host. It does not prove physical safety certification or performance on unmeasured hardware.",
     "completed_task_ids": [
-      "T00_00",
-      "T01_00",
-      "T02_00"
+      "DEPLOY-01",
+      "DEPLOY-02",
+      "DEPLOY-03"
     ],
     "contacts": {
       "robot-human": 0,
@@ -124,18 +124,18 @@
     "controller_boundary_exercised": true,
     "duration_s": 20.0,
     "edge_node_pids": {
-      "AMR01": 8555,
-      "AMR02": 8556,
-      "AMR03": 8557
+      "AMR01": 8880,
+      "AMR02": 8881,
+      "AMR03": 8882
     },
-    "full_task_completion_required": false,
+    "full_task_completion_required": true,
     "hardware_boundary": "JSON/UDP sensors and actuator commands",
     "host_platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "nodes": [
       {
         "brain": {
-          "auction_bids_sent": 7,
-          "auction_messages_sent": 31,
+          "auction_bids_sent": 1,
+          "auction_messages_sent": 10,
           "bid_rebroadcasts_suppressed": 0,
           "bios4_claim": 0,
           "bios4_hold": 0,
@@ -143,7 +143,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 50007,
+          "bytes_sent": 31065,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
@@ -152,11 +152,11 @@
           "coordination_messages_sent": 40,
           "deadline_misses": 0,
           "deadlocks_detected": 0,
-          "decision_events": 3,
+          "decision_events": 2,
           "deferred_unknown_bids": 0,
           "dynamic_obstacles_detected": 0,
           "dynamic_reroutes": 0,
-          "energy_bids_suppressed": 14,
+          "energy_bids_suppressed": 2,
           "energy_no_eligible_rounds": 0,
           "experience_guided_replans": 0,
           "experience_messages_sent": 0,
@@ -179,30 +179,30 @@
           "future_version_mismatches": 0,
           "heartbeat_messages_sent": 95,
           "heartbeat_messages_suppressed": 0,
-          "intent_messages_sent": 88,
+          "intent_messages_sent": 23,
           "intent_messages_suppressed": 0,
-          "lease_renewals_suppressed": 70,
-          "local_plans": 4,
-          "msgs_recv": 775,
-          "msgs_sent": 254,
+          "lease_renewals_suppressed": 18,
+          "local_plans": 2,
+          "msgs_recv": 506,
+          "msgs_sent": 168,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 159,
-          "plan_cpu_max_s": 0.0008534580119885504,
-          "plan_cpu_s": 0.015709458850324154,
+          "plan_calls": 34,
+          "plan_cpu_max_s": 0.00015645800158381462,
+          "plan_cpu_s": 0.0036152089887764305,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 155,
+          "priority_decisions": 32,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
-          "progress_cells": 13,
+          "progress_cells": 3,
           "rejected_directed_awards": 0,
           "rejected_epoch_jumps": 0,
           "rejected_task_completions": 0,
           "rejected_task_conflicts": 0,
           "rejected_unknown_bids": 0,
-          "replans": 4,
+          "replans": 2,
           "retreats": 0,
           "safety_stops": 0,
           "seconds_degraded": 0.0,
@@ -212,12 +212,12 @@
           "yields": 0
         },
         "completed_tasks": [
-          "T00_00",
-          "T01_00",
-          "T02_00"
+          "DEPLOY-01",
+          "DEPLOY-02",
+          "DEPLOY-03"
         ],
         "deployment": {
-          "scenario": "open_floor_control",
+          "scenario": "deployment_socket_acceptance",
           "seed": 0,
           "source": "built_in_scenario"
         },
@@ -230,10 +230,10 @@
         "robot_id": "AMR01",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 11.734375002561137,
-          "loop_mean_ms": 0.3671482617792208,
-          "loop_p95_ms": 1.0644169815350324,
-          "loop_p99_ms": 1.438500010408461,
+          "loop_max_ms": 1.6761249862611294,
+          "loop_mean_ms": 0.3134015731338877,
+          "loop_p95_ms": 0.7960840011946857,
+          "loop_p99_ms": 1.1689999955706298,
           "sensor_timeouts": 0,
           "ticks": 1000
         },
@@ -242,29 +242,29 @@
           "failed": 0,
           "sent": 0
         },
-        "state": "to_drop",
-        "task": "T00_01",
+        "state": "idle",
+        "task": null,
         "terminal_journal": {
           "loads": 1,
           "write_failures": 0,
-          "writes": 2
+          "writes": 1
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 228781,
-          "bytes_sent": 74899,
+          "bytes_recv": 143133,
+          "bytes_sent": 47529,
           "malformed": 0,
           "oversized": 0,
-          "recv": 775,
+          "recv": 506,
           "replayed": 0,
           "send_failed": 0,
-          "sent": 254
+          "sent": 168
         }
       },
       {
         "brain": {
-          "auction_bids_sent": 7,
-          "auction_messages_sent": 31,
+          "auction_bids_sent": 1,
+          "auction_messages_sent": 10,
           "bid_rebroadcasts_suppressed": 0,
           "bios4_claim": 0,
           "bios4_hold": 0,
@@ -272,7 +272,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 50140,
+          "bytes_sent": 30980,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
@@ -281,11 +281,11 @@
           "coordination_messages_sent": 40,
           "deadline_misses": 0,
           "deadlocks_detected": 0,
-          "decision_events": 3,
+          "decision_events": 2,
           "deferred_unknown_bids": 0,
           "dynamic_obstacles_detected": 0,
           "dynamic_reroutes": 0,
-          "energy_bids_suppressed": 14,
+          "energy_bids_suppressed": 2,
           "energy_no_eligible_rounds": 0,
           "experience_guided_replans": 0,
           "experience_messages_sent": 0,
@@ -308,30 +308,30 @@
           "future_version_mismatches": 0,
           "heartbeat_messages_sent": 95,
           "heartbeat_messages_suppressed": 0,
-          "intent_messages_sent": 89,
+          "intent_messages_sent": 23,
           "intent_messages_suppressed": 0,
-          "lease_renewals_suppressed": 70,
-          "local_plans": 4,
-          "msgs_recv": 775,
-          "msgs_sent": 255,
+          "lease_renewals_suppressed": 18,
+          "local_plans": 2,
+          "msgs_recv": 506,
+          "msgs_sent": 168,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 160,
-          "plan_cpu_max_s": 0.0006608330004382879,
-          "plan_cpu_s": 0.01489857499836944,
+          "plan_calls": 33,
+          "plan_cpu_max_s": 0.0001294999965466559,
+          "plan_cpu_s": 0.003359498019563034,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 156,
+          "priority_decisions": 31,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
-          "progress_cells": 13,
+          "progress_cells": 3,
           "rejected_directed_awards": 0,
           "rejected_epoch_jumps": 0,
           "rejected_task_completions": 0,
           "rejected_task_conflicts": 0,
           "rejected_unknown_bids": 0,
-          "replans": 4,
+          "replans": 2,
           "retreats": 0,
           "safety_stops": 0,
           "seconds_degraded": 0.0,
@@ -341,12 +341,12 @@
           "yields": 0
         },
         "completed_tasks": [
-          "T00_00",
-          "T01_00",
-          "T02_00"
+          "DEPLOY-01",
+          "DEPLOY-02",
+          "DEPLOY-03"
         ],
         "deployment": {
-          "scenario": "open_floor_control",
+          "scenario": "deployment_socket_acceptance",
           "seed": 0,
           "source": "built_in_scenario"
         },
@@ -359,10 +359,10 @@
         "robot_id": "AMR02",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 2.928250003606081,
-          "loop_mean_ms": 0.3492274559685029,
-          "loop_p95_ms": 1.028250000672415,
-          "loop_p99_ms": 1.5691249864175916,
+          "loop_max_ms": 2.3355000012088567,
+          "loop_mean_ms": 0.31486483311164193,
+          "loop_p95_ms": 0.7849590037949383,
+          "loop_p99_ms": 1.1333340080454946,
           "sensor_timeouts": 0,
           "ticks": 1000
         },
@@ -371,29 +371,29 @@
           "failed": 0,
           "sent": 0
         },
-        "state": "to_drop",
-        "task": "T01_01",
+        "state": "idle",
+        "task": null,
         "terminal_journal": {
           "loads": 1,
           "write_failures": 0,
-          "writes": 3
+          "writes": 2
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 228781,
-          "bytes_sent": 75130,
+          "bytes_recv": 143133,
+          "bytes_sent": 47444,
           "malformed": 0,
           "oversized": 0,
-          "recv": 775,
+          "recv": 506,
           "replayed": 0,
           "send_failed": 0,
-          "sent": 255
+          "sent": 168
         }
       },
       {
         "brain": {
-          "auction_bids_sent": 7,
-          "auction_messages_sent": 31,
+          "auction_bids_sent": 1,
+          "auction_messages_sent": 10,
           "bid_rebroadcasts_suppressed": 0,
           "bios4_claim": 0,
           "bios4_hold": 0,
@@ -401,20 +401,20 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 50053,
+          "bytes_sent": 30837,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
           "completion_certificates_relayed": 0,
           "congestion_samples": 0,
-          "coordination_messages_sent": 39,
+          "coordination_messages_sent": 40,
           "deadline_misses": 0,
           "deadlocks_detected": 0,
-          "decision_events": 3,
+          "decision_events": 2,
           "deferred_unknown_bids": 0,
           "dynamic_obstacles_detected": 0,
           "dynamic_reroutes": 0,
-          "energy_bids_suppressed": 14,
+          "energy_bids_suppressed": 2,
           "energy_no_eligible_rounds": 0,
           "experience_guided_replans": 0,
           "experience_messages_sent": 0,
@@ -437,30 +437,30 @@
           "future_version_mismatches": 0,
           "heartbeat_messages_sent": 95,
           "heartbeat_messages_suppressed": 0,
-          "intent_messages_sent": 89,
+          "intent_messages_sent": 22,
           "intent_messages_suppressed": 0,
-          "lease_renewals_suppressed": 70,
-          "local_plans": 4,
-          "msgs_recv": 775,
-          "msgs_sent": 254,
+          "lease_renewals_suppressed": 17,
+          "local_plans": 2,
+          "msgs_recv": 506,
+          "msgs_sent": 167,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 160,
-          "plan_cpu_max_s": 0.00015320800594054163,
-          "plan_cpu_s": 0.013639792159665376,
+          "plan_calls": 32,
+          "plan_cpu_max_s": 0.00012779200915247202,
+          "plan_cpu_s": 0.00319891789695248,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 156,
+          "priority_decisions": 30,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
-          "progress_cells": 13,
+          "progress_cells": 3,
           "rejected_directed_awards": 0,
           "rejected_epoch_jumps": 0,
           "rejected_task_completions": 0,
           "rejected_task_conflicts": 0,
           "rejected_unknown_bids": 0,
-          "replans": 4,
+          "replans": 2,
           "retreats": 0,
           "safety_stops": 0,
           "seconds_degraded": 0.0,
@@ -470,12 +470,12 @@
           "yields": 0
         },
         "completed_tasks": [
-          "T00_00",
-          "T01_00",
-          "T02_00"
+          "DEPLOY-01",
+          "DEPLOY-02",
+          "DEPLOY-03"
         ],
         "deployment": {
-          "scenario": "open_floor_control",
+          "scenario": "deployment_socket_acceptance",
           "seed": 0,
           "source": "built_in_scenario"
         },
@@ -488,10 +488,10 @@
         "robot_id": "AMR03",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 3.0462919967249036,
-          "loop_mean_ms": 0.3354397971997969,
-          "loop_p95_ms": 1.0140830127056688,
-          "loop_p99_ms": 1.279124990105629,
+          "loop_max_ms": 1.5901250008028,
+          "loop_mean_ms": 0.3053602155705448,
+          "loop_p95_ms": 0.8207499922718853,
+          "loop_p99_ms": 1.1316250020172447,
           "sensor_timeouts": 0,
           "ticks": 1000
         },
@@ -500,23 +500,23 @@
           "failed": 0,
           "sent": 0
         },
-        "state": "to_drop",
-        "task": "T02_01",
+        "state": "idle",
+        "task": null,
         "terminal_journal": {
           "loads": 1,
           "write_failures": 0,
-          "writes": 3
+          "writes": 2
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 228781,
-          "bytes_sent": 74945,
+          "bytes_recv": 143133,
+          "bytes_sent": 47203,
           "malformed": 0,
           "oversized": 0,
-          "recv": 775,
+          "recv": 506,
           "replayed": 0,
           "send_failed": 0,
-          "sent": 254
+          "sent": 167
         }
       }
     ],
@@ -532,18 +532,18 @@
     "referee_forwards_peer_messages": false,
     "referee_selects_winners": false,
     "robots": 3,
-    "scenario": "open_floor_control",
+    "scenario": "deployment_socket_acceptance",
     "seed": 0,
     "sensor_cut_evidence": null,
     "separate_edge_nodes": true,
     "success": true,
-    "tasks_announced": 12,
+    "tasks_announced": 3,
     "tasks_completed": 3,
-    "wall_time_s": 20.112757208000403
+    "wall_time_s": 20.134531458024867
   },
   "provenance": {
     "changed_paths": [],
-    "commit": "fa56f23e925a4eda2f49a6df44624c506aefd9bf",
+    "commit": "8ccf9c81b26e6d58566e61a01ccf50bde38b8f63",
     "dirty": false
   },
   "scope": "software deployment acceptance on the reported host",
@@ -554,12 +554,12 @@
           "accepted": 70,
           "command_timeout_s": 0.1,
           "invalid_commands": 0,
-          "safety_stops": 14,
+          "safety_stops": 13,
           "watchdog_stops": 0
         },
         "frames": 70,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 1
+        "ticks_without_fresh_frame": 5
       },
       "AMR02": {
         "controller_command_gate": {
@@ -571,19 +571,19 @@
         },
         "frames": 70,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 1
+        "ticks_without_fresh_frame": 2
       },
       "AMR03": {
         "controller_command_gate": {
-          "accepted": 70,
+          "accepted": 71,
           "command_timeout_s": 0.1,
           "invalid_commands": 0,
           "safety_stops": 1,
           "watchdog_stops": 0
         },
-        "frames": 70,
+        "frames": 71,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 1
+        "ticks_without_fresh_frame": 5
       }
     },
     "allocation_policy": "preassigned",
@@ -599,9 +599,9 @@
     "controller_boundary_exercised": true,
     "duration_s": 1.4,
     "edge_node_pids": {
-      "AMR01": 8564,
-      "AMR02": 8565,
-      "AMR03": 8566
+      "AMR01": 8891,
+      "AMR02": 8892,
+      "AMR03": 8893
     },
     "full_task_completion_required": false,
     "hardware_boundary": "JSON/UDP sensors and actuator commands",
@@ -618,7 +618,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2437,
+          "bytes_sent": 2438,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -662,8 +662,8 @@
           "msgs_sent": 15,
           "nonproductive_wait_ticks": 0,
           "plan_calls": 12,
-          "plan_cpu_max_s": 0.00011475000064820051,
-          "plan_cpu_s": 0.0006759160023648292,
+          "plan_cpu_max_s": 0.00017108299653045833,
+          "plan_cpu_s": 0.001162918983027339,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
@@ -701,12 +701,12 @@
         "robot_id": "AMR01",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.0655000223778188,
-          "loop_mean_ms": 0.2926726265286561,
-          "loop_p95_ms": 0.991749984677881,
-          "loop_p99_ms": 1.0655000223778188,
-          "sensor_timeouts": 13,
-          "ticks": 56
+          "loop_max_ms": 1.8672089790925384,
+          "loop_mean_ms": 0.372244211081252,
+          "loop_p95_ms": 1.2312500039115548,
+          "loop_p99_ms": 1.8672089790925384,
+          "sensor_timeouts": 12,
+          "ticks": 57
         },
         "service_notify": {
           "enabled": false,
@@ -722,8 +722,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 3907,
+          "bytes_recv": 12773,
+          "bytes_sent": 3908,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -743,7 +743,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2780,
+          "bytes_sent": 2766,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -786,13 +786,13 @@
           "msgs_recv": 49,
           "msgs_sent": 17,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 13,
-          "plan_cpu_max_s": 0.00011366599937900901,
-          "plan_cpu_s": 0.0008507069433107972,
+          "plan_calls": 14,
+          "plan_cpu_max_s": 0.00013904200750403106,
+          "plan_cpu_s": 0.0012604609946720302,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 12,
+          "priority_decisions": 13,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
@@ -821,15 +821,15 @@
           "actuator_frames": 71,
           "actuator_send_failed": 0,
           "invalid_sensor_frames": 0,
-          "sensor_frames": 70
+          "sensor_frames": 69
         },
         "robot_id": "AMR02",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.2069590156897902,
-          "loop_mean_ms": 0.26831398692751385,
-          "loop_p95_ms": 0.895500008482486,
-          "loop_p99_ms": 1.2069590156897902,
+          "loop_max_ms": 1.3704999873880297,
+          "loop_mean_ms": 0.3584438974570915,
+          "loop_p95_ms": 1.0902500071097165,
+          "loop_p99_ms": 1.3704999873880297,
           "sensor_timeouts": 0,
           "ticks": 69
         },
@@ -847,8 +847,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 4446,
+          "bytes_recv": 12773,
+          "bytes_sent": 4432,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -868,7 +868,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2781,
+          "bytes_sent": 2767,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -912,8 +912,8 @@
           "msgs_sent": 17,
           "nonproductive_wait_ticks": 0,
           "plan_calls": 13,
-          "plan_cpu_max_s": 0.00011312498827464879,
-          "plan_cpu_s": 0.0007812479743734002,
+          "plan_cpu_max_s": 0.00013562501408159733,
+          "plan_cpu_s": 0.001149957999587059,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
@@ -943,7 +943,7 @@
           "source": "built_in_scenario"
         },
         "hardware": {
-          "actuator_frames": 71,
+          "actuator_frames": 72,
           "actuator_send_failed": 0,
           "invalid_sensor_frames": 0,
           "sensor_frames": 70
@@ -951,12 +951,12 @@
         "robot_id": "AMR03",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.2988329981453717,
-          "loop_mean_ms": 0.25634297070201434,
-          "loop_p95_ms": 1.0082079970743507,
-          "loop_p99_ms": 1.2988329981453717,
+          "loop_max_ms": 1.311041007284075,
+          "loop_mean_ms": 0.35438384345200447,
+          "loop_p95_ms": 1.0372920078225434,
+          "loop_p99_ms": 1.311041007284075,
           "sensor_timeouts": 0,
-          "ticks": 69
+          "ticks": 70
         },
         "service_notify": {
           "enabled": false,
@@ -972,8 +972,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 4447,
+          "bytes_recv": 12773,
+          "bytes_sent": 4433,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -1000,17 +1000,17 @@
     "sensor_cut_evidence": {
       "cut_at_s": 0.3,
       "cut_duration_s": 0.5,
-      "first_safety_stop_after_cut_s": 0.5647699999972247,
+      "first_safety_stop_after_cut_s": 0.5839847919996828,
       "pass": true,
       "recovered_after_sensor_return": true,
-      "response_s": 0.26476999999722467,
+      "response_s": 0.2839847919996828,
       "robot_id": "AMR01"
     },
     "separate_edge_nodes": true,
     "success": true,
     "tasks_announced": 12,
     "tasks_completed": 0,
-    "wall_time_s": 1.501517665979918
+    "wall_time_s": 1.5229141250019893
   },
   "success": true,
   "verdict": "PASS"
