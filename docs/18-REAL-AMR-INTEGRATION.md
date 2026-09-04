@@ -105,7 +105,7 @@ The single JSON result proves, for that measured run:
 1. three distinct edge-node processes ran;
 2. all crossed the production sensor/actuator socket boundary;
 3. authenticated peer messages were received;
-4. Auction V2 completed real work;
+4. Auction V2 completed 100% of the short declared deployment workload;
 5. no deadline was missed;
 6. contacts were measured by category;
 7. a forced sensor outage caused a bounded fail-safe stop and recovered after frames

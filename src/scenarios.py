@@ -495,6 +495,45 @@ def open_floor_control(n_robots: int = 8, tasks_per_robot: int = 4,
                     duration_s=600.0, pose_noise_m=0.0, seed=seed)
 
 
+def deployment_socket_acceptance(n_robots: int = 3, tasks_per_robot: int = 1,
+                                 seed: int = 0) -> Scenario:
+    """Short, complete workload for proving the deployed I/O boundary.
+
+    Each AMR has one reachable task in its own isolated lane. The scenario is not a
+    traffic-performance benchmark; it makes a strict 20-second socket/HIL proof finish
+    every declared job so process startup, live task injection, auction convergence,
+    motion commands, completion gossip and persistence are all exercised on stage.
+    """
+    if n_robots < 3:
+        raise ValueError("deployment acceptance requires at least three AMRs")
+    width = 8
+    height = 2 * n_robots + 1
+    grid = [[RACK] * width for _ in range(height)]
+    stations = []
+    docks = []
+    starts = []
+    assignments: list[list[Task]] = []
+    for robot_index in range(n_robots):
+        y = 2 * robot_index + 1
+        grid[y] = [FREE] * width
+        grid[y][1] = STATION
+        grid[y][width - 2] = DOCK
+        stations.append((1, y))
+        docks.append((width - 2, y))
+        starts.append((2, y))
+        assignments.append([
+            Task(f"DEPLOY-{robot_index + 1:02d}", (3, y), (5, y), 0.0)
+        ])
+    env = Warehouse(
+        width, height, tuple(tuple(row) for row in grid),
+        tuple(stations), tuple(docks), "deployment_socket_acceptance",
+    )
+    return Scenario(
+        "deployment_socket_acceptance", env, starts, assignments,
+        duration_s=20.0, pose_noise_m=0.0, seed=seed,
+    )
+
+
 def blocked_aisle(n_robots: int = 3, tasks_per_robot: int = 1,
                   seed: int = 0) -> Scenario:
     """A dropped pallet appears on one planned route; an alternate route remains."""
@@ -833,6 +872,7 @@ SCENARIOS = {
     "dead_zone_infra": lambda **kw: dead_zone(mesh_radio=False, **kw),
     "dead_zone_mesh": lambda **kw: dead_zone(mesh_radio=True, **kw),
     "open_floor_control": open_floor_control,
+    "deployment_socket_acceptance": deployment_socket_acceptance,
     "blocked_aisle": blocked_aisle,
     "robot_failure_reassignment": robot_failure_reassignment,
     "partition_recovery": partition_recovery,

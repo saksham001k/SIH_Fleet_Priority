@@ -24,7 +24,7 @@ python --version
 # 2. Dependencies (editable install, pulls in pytest/ruff and the report extras)
 python -m pip install -e ".[dev]"
 
-# 3. Full regression suite. Current deployment branch collects 244 tests.
+# 3. Full regression suite. Current deployment branch collects 245 tests.
 python -m pytest -q
 
 # 4. Python compiles cleanly (catches a syntax error a linter might not gate on)
@@ -35,7 +35,7 @@ python -m compileall -q src backend *.py
 for f in $(find frontend/js -name '*.js'); do node --check "$f" || echo "FAIL: $f"; done
 ```
 
-Expected output: `244 passed in ...s`, silent success from `compileall`, and no `FAIL:`
+Expected output: `245 passed in ...s`, silent success from `compileall`, and no `FAIL:`
 lines from the Node loop. If any of these fail on the demo machine, stop and fix it —
 none of what follows is trustworthy on top of a broken base.
 
@@ -49,7 +49,7 @@ python deployment_acceptance.py --duration 20
 
 The concise terminal verdict must be `BIOS DEPLOYMENT ACCEPTANCE: PASS`. It verifies
 three public edge-node executables, the UDP sensor/actuator boundary, authenticated peer
-traffic, Auction V2 doing work, zero measured contacts, deadline timing, sensor-loss
+traffic, Auction V2 completing the full short deployment workload, zero measured contacts, deadline timing, sensor-loss
 stop/recovery, controller command timeout, wrong-key rejection, replay rejection and
 site/task validation. The full result is written to
 `artifacts/deployment/deployment-acceptance.json`.

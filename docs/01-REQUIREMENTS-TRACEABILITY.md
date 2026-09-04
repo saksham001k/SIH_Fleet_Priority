@@ -137,7 +137,7 @@ tests. See [13. Testing](13-TESTING.md).
 ## 4. How to verify each claim yourself
 
 ```bash
-python -m pytest tests -q                 # full suite: 244 tests on deployment branch
+python -m pytest tests -q                 # full suite: 245 tests on deployment branch
 python benchmark.py --seeds 30 --jobs 8   # the acceptance gate: exit 0 = pass, 2 = fail
 python edge_demo.py                       # three real OS processes over UDP multicast
 python backend/server.py                  # dashboard at http://127.0.0.1:8000

@@ -130,7 +130,7 @@ def controller_watchdog_probe() -> dict:
 
 
 def run_deployment_acceptance(duration_s: float = 20.0,
-                              scenario_name: str = "open_floor_control",
+                              scenario_name: str = "deployment_socket_acceptance",
                               robots: int = 3,
                               site_path: str | Path | None = None,
                               task_path: str | Path | None = None) -> dict:
@@ -150,6 +150,7 @@ def run_deployment_acceptance(duration_s: float = 20.0,
         sensor_base_port=normal_ports + 1,
         actuator_base_port=normal_ports + 4,
         shared_key="deployment-acceptance-key-0001",
+        require_task_completion=True,
     )
     fail_safe_ports = _free_udp_block(7)
     fail_safe = run_hil_demo(
@@ -187,7 +188,10 @@ def run_deployment_acceptance(duration_s: float = 20.0,
         "contact_free_in_measured_run": all(
             value == 0 for value in normal["contacts"].values()
         ),
-        "auction_v2_completed_work": normal["tasks_completed"] > 0,
+        "auction_v2_completed_all_declared_work": (
+            normal["tasks_completed"] == normal["tasks_announced"]
+            and normal["tasks_announced"] > 0
+        ),
         "sensor_timeout_fail_safe_and_recovery": (
             fail_safe["sensor_cut_evidence"] is not None
             and fail_safe["sensor_cut_evidence"]["pass"]
@@ -231,7 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Run all jury-facing BIOS deployment acceptance gates",
     )
     parser.add_argument("--duration", type=float, default=20.0)
-    parser.add_argument("--scenario", default="open_floor_control")
+    parser.add_argument("--scenario", default="deployment_socket_acceptance")
     parser.add_argument("--robots", type=int, default=3)
     parser.add_argument("--site-config")
     parser.add_argument("--tasks")

@@ -64,7 +64,7 @@ Full method, provenance and caveats: **[12. Benchmark and Evidence](12-BENCHMARK
 ## Quick start
 
 ```bash
-python -m pytest tests -q                 # full suite: 244 tests on deployment branch
+python -m pytest tests -q                 # full suite: 245 tests on deployment branch
 python backend/server.py                  # dashboard at http://127.0.0.1:8000
 python edge_demo.py                       # three real OS processes over UDP multicast
 python deployment_acceptance.py --duration 20 # deployed executables through real I/O sockets
