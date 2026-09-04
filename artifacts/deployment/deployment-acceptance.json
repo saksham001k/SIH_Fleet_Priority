@@ -75,24 +75,24 @@
           "accepted": 1001,
           "command_timeout_s": 0.1,
           "invalid_commands": 0,
-          "safety_stops": 2,
+          "safety_stops": 1,
           "watchdog_stops": 0
         },
         "frames": 1001,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 0
+        "ticks_without_fresh_frame": 1
       },
       "AMR02": {
         "controller_command_gate": {
           "accepted": 1001,
           "command_timeout_s": 0.1,
           "invalid_commands": 0,
-          "safety_stops": 2,
+          "safety_stops": 1,
           "watchdog_stops": 0
         },
         "frames": 1001,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 259
+        "ticks_without_fresh_frame": 0
       },
       "AMR03": {
         "controller_command_gate": {
@@ -104,7 +104,7 @@
         },
         "frames": 1001,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 106
+        "ticks_without_fresh_frame": 1
       }
     },
     "allocation_policy": "auction_bundle",
@@ -124,9 +124,9 @@
     "controller_boundary_exercised": true,
     "duration_s": 20.0,
     "edge_node_pids": {
-      "AMR01": 9030,
-      "AMR02": 9031,
-      "AMR03": 9032
+      "AMR01": 9813,
+      "AMR02": 9814,
+      "AMR03": 9815
     },
     "full_task_completion_required": true,
     "hardware_boundary": "JSON/UDP sensors and actuator commands",
@@ -143,13 +143,13 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 30879,
+          "bytes_sent": 31156,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
           "completion_certificates_relayed": 0,
           "congestion_samples": 0,
-          "coordination_messages_sent": 39,
+          "coordination_messages_sent": 40,
           "deadline_misses": 0,
           "deadlocks_detected": 0,
           "decision_events": 2,
@@ -177,22 +177,22 @@
           "future_promotion_failures": 0,
           "future_promotions": 0,
           "future_version_mismatches": 0,
-          "heartbeat_messages_sent": 95,
+          "heartbeat_messages_sent": 96,
           "heartbeat_messages_suppressed": 0,
           "intent_messages_sent": 23,
           "intent_messages_suppressed": 0,
           "lease_renewals_suppressed": 18,
           "local_plans": 2,
-          "msgs_recv": 502,
-          "msgs_sent": 167,
+          "msgs_recv": 505,
+          "msgs_sent": 169,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 32,
-          "plan_cpu_max_s": 0.00016999998479150236,
-          "plan_cpu_s": 0.0036049170012120157,
+          "plan_calls": 31,
+          "plan_cpu_max_s": 0.00013141697854734957,
+          "plan_cpu_s": 0.0029882069502491504,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 30,
+          "priority_decisions": 29,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
@@ -230,12 +230,12 @@
         "robot_id": "AMR01",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.839083997765556,
-          "loop_mean_ms": 0.3121807704911799,
-          "loop_p95_ms": 0.7818749872967601,
-          "loop_p99_ms": 1.1182500165887177,
+          "loop_max_ms": 1.6040410264395177,
+          "loop_mean_ms": 0.2930531189485919,
+          "loop_p95_ms": 0.7221659761853516,
+          "loop_p99_ms": 0.984541984507814,
           "sensor_timeouts": 0,
-          "ticks": 999
+          "ticks": 1000
         },
         "service_notify": {
           "enabled": false,
@@ -251,14 +251,14 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 142020,
-          "bytes_sent": 47245,
+          "bytes_recv": 142882,
+          "bytes_sent": 47718,
           "malformed": 0,
           "oversized": 0,
-          "recv": 502,
+          "recv": 505,
           "replayed": 0,
           "send_failed": 0,
-          "sent": 167
+          "sent": 169
         }
       },
       {
@@ -272,7 +272,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 30660,
+          "bytes_sent": 31012,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
@@ -306,22 +306,22 @@
           "future_promotion_failures": 0,
           "future_promotions": 0,
           "future_version_mismatches": 0,
-          "heartbeat_messages_sent": 94,
+          "heartbeat_messages_sent": 95,
           "heartbeat_messages_suppressed": 0,
-          "intent_messages_sent": 22,
+          "intent_messages_sent": 23,
           "intent_messages_suppressed": 0,
-          "lease_renewals_suppressed": 17,
+          "lease_renewals_suppressed": 18,
           "local_plans": 2,
-          "msgs_recv": 502,
-          "msgs_sent": 166,
+          "msgs_recv": 506,
+          "msgs_sent": 168,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 33,
-          "plan_cpu_max_s": 0.00015458298730663955,
-          "plan_cpu_s": 0.0035252070520073175,
+          "plan_calls": 31,
+          "plan_cpu_max_s": 0.00016820800374262035,
+          "plan_cpu_s": 0.0031185390253085643,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 31,
+          "priority_decisions": 29,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
@@ -354,17 +354,17 @@
           "actuator_frames": 1002,
           "actuator_send_failed": 0,
           "invalid_sensor_frames": 0,
-          "sensor_frames": 999
+          "sensor_frames": 1000
         },
         "robot_id": "AMR02",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.5090829983819276,
-          "loop_mean_ms": 0.31972038617298876,
-          "loop_p95_ms": 0.7551250164397061,
-          "loop_p99_ms": 1.1310419940855354,
+          "loop_max_ms": 1.7816250037867576,
+          "loop_mean_ms": 0.3029733248404227,
+          "loop_p95_ms": 0.7358329894486815,
+          "loop_p99_ms": 1.0031659912783653,
           "sensor_timeouts": 0,
-          "ticks": 999
+          "ticks": 1000
         },
         "service_notify": {
           "enabled": false,
@@ -376,18 +376,18 @@
         "terminal_journal": {
           "loads": 1,
           "write_failures": 0,
-          "writes": 3
+          "writes": 2
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 142020,
-          "bytes_sent": 46928,
+          "bytes_recv": 143119,
+          "bytes_sent": 47476,
           "malformed": 0,
           "oversized": 0,
-          "recv": 502,
+          "recv": 506,
           "replayed": 0,
           "send_failed": 0,
-          "sent": 166
+          "sent": 168
         }
       },
       {
@@ -401,7 +401,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 30622,
+          "bytes_sent": 30700,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 3,
@@ -441,16 +441,16 @@
           "intent_messages_suppressed": 0,
           "lease_renewals_suppressed": 17,
           "local_plans": 2,
-          "msgs_recv": 502,
+          "msgs_recv": 505,
           "msgs_sent": 166,
           "nonproductive_wait_ticks": 0,
-          "plan_calls": 32,
-          "plan_cpu_max_s": 0.00015591600094921887,
-          "plan_cpu_s": 0.0034187510318588465,
+          "plan_calls": 33,
+          "plan_cpu_max_s": 0.00012516701826825738,
+          "plan_cpu_s": 0.0033179190068040043,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
-          "priority_decisions": 30,
+          "priority_decisions": 31,
           "priority_forced_moves": 0,
           "priority_inheritances": 0,
           "priority_waits": 0,
@@ -483,15 +483,15 @@
           "actuator_frames": 1002,
           "actuator_send_failed": 0,
           "invalid_sensor_frames": 0,
-          "sensor_frames": 999
+          "sensor_frames": 1000
         },
         "robot_id": "AMR03",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.6528749838471413,
-          "loop_mean_ms": 0.3192862929427065,
-          "loop_p95_ms": 0.8262500050477684,
-          "loop_p99_ms": 1.116208004532382,
+          "loop_max_ms": 1.8772920011542737,
+          "loop_mean_ms": 0.3000758530397434,
+          "loop_p95_ms": 0.752874999307096,
+          "loop_p99_ms": 1.0531250154599547,
           "sensor_timeouts": 0,
           "ticks": 1000
         },
@@ -509,11 +509,11 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 142020,
-          "bytes_sent": 46890,
+          "bytes_recv": 142882,
+          "bytes_sent": 46968,
           "malformed": 0,
           "oversized": 0,
-          "recv": 502,
+          "recv": 505,
           "replayed": 0,
           "send_failed": 0,
           "sent": 166
@@ -539,12 +539,20 @@
     "success": true,
     "tasks_announced": 3,
     "tasks_completed": 3,
-    "wall_time_s": 20.15271516700159
+    "wall_time_s": 20.132255208009155
   },
   "provenance": {
-    "changed_paths": [],
-    "commit": "f0f9ec495db5ca7ce3c8dcb2320d399fbce0243a",
-    "dirty": false
+    "changed_paths": [
+      "?? .codex-sim-professional.WI9nGU/",
+      "?? .ppt-final-586TU7/",
+      "?? .ppt-review-SOoq4q/",
+      "?? SIH_Fleet_Priority/",
+      "?? Untitled/",
+      "?? distributed-demo-result.json",
+      "?? output/"
+    ],
+    "commit": "9b13948e387cd876708917561aa3c80c4a2ae202",
+    "dirty": true
   },
   "scope": "software deployment acceptance on the reported host",
   "sensor_fail_safe_run": {
@@ -559,19 +567,19 @@
         },
         "frames": 71,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 22
+        "ticks_without_fresh_frame": 0
       },
       "AMR02": {
         "controller_command_gate": {
-          "accepted": 70,
+          "accepted": 71,
           "command_timeout_s": 0.1,
           "invalid_commands": 0,
           "safety_stops": 1,
           "watchdog_stops": 0
         },
-        "frames": 70,
+        "frames": 71,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 15
+        "ticks_without_fresh_frame": 0
       },
       "AMR03": {
         "controller_command_gate": {
@@ -583,7 +591,7 @@
         },
         "frames": 71,
         "invalid_frames": 0,
-        "ticks_without_fresh_frame": 20
+        "ticks_without_fresh_frame": 0
       }
     },
     "allocation_policy": "preassigned",
@@ -599,9 +607,9 @@
     "controller_boundary_exercised": true,
     "duration_s": 1.4,
     "edge_node_pids": {
-      "AMR01": 9042,
-      "AMR02": 9043,
-      "AMR03": 9044
+      "AMR01": 9821,
+      "AMR02": 9822,
+      "AMR03": 9823
     },
     "full_task_completion_required": false,
     "hardware_boundary": "JSON/UDP sensors and actuator commands",
@@ -618,7 +626,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2443,
+          "bytes_sent": 2432,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -662,8 +670,8 @@
           "msgs_sent": 15,
           "nonproductive_wait_ticks": 0,
           "plan_calls": 12,
-          "plan_cpu_max_s": 0.00011675001587718725,
-          "plan_cpu_s": 0.0010484190133865923,
+          "plan_cpu_max_s": 0.00014545800513587892,
+          "plan_cpu_s": 0.0011027911095879972,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
@@ -701,10 +709,10 @@
         "robot_id": "AMR01",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 2.0900839881505817,
-          "loop_mean_ms": 0.3564938722940331,
-          "loop_p95_ms": 1.1186660267412663,
-          "loop_p99_ms": 2.0900839881505817,
+          "loop_max_ms": 2.220750000560656,
+          "loop_mean_ms": 0.35747575986368413,
+          "loop_p95_ms": 1.1450840102043003,
+          "loop_p99_ms": 2.220750000560656,
           "sensor_timeouts": 15,
           "ticks": 55
         },
@@ -722,8 +730,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 3913,
+          "bytes_recv": 12786,
+          "bytes_sent": 3902,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -743,7 +751,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2778,
+          "bytes_sent": 2779,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -787,8 +795,8 @@
           "msgs_sent": 17,
           "nonproductive_wait_ticks": 0,
           "plan_calls": 13,
-          "plan_cpu_max_s": 0.00012604199582710862,
-          "plan_cpu_s": 0.001175624958705157,
+          "plan_cpu_max_s": 0.00012041701120324433,
+          "plan_cpu_s": 0.0010889589902944863,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
@@ -826,10 +834,10 @@
         "robot_id": "AMR02",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.5791670011822134,
-          "loop_mean_ms": 0.3134654290209125,
-          "loop_p95_ms": 0.8246669895015657,
-          "loop_p99_ms": 1.5791670011822134,
+          "loop_max_ms": 1.3577079807873815,
+          "loop_mean_ms": 0.3139940556138754,
+          "loop_p95_ms": 0.866833986947313,
+          "loop_p99_ms": 1.3577079807873815,
           "sensor_timeouts": 0,
           "ticks": 70
         },
@@ -847,8 +855,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 4444,
+          "bytes_recv": 12786,
+          "bytes_sent": 4445,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -868,7 +876,7 @@
           "bios4_reroute": 0,
           "bios4_unstick": 0,
           "bios4_yield": 0,
-          "bytes_sent": 2777,
+          "bytes_sent": 2773,
           "central_plans": 0,
           "charger_contentions_avoided": 0,
           "completion_certificates_accepted": 0,
@@ -912,8 +920,8 @@
           "msgs_sent": 17,
           "nonproductive_wait_ticks": 0,
           "plan_calls": 13,
-          "plan_cpu_max_s": 0.00013154197949916124,
-          "plan_cpu_s": 0.0011683739721775055,
+          "plan_cpu_max_s": 0.00013045797822996974,
+          "plan_cpu_s": 0.0011428350117057562,
           "predictive_hazards_seen": 0,
           "predictive_reroutes": 0,
           "priority_backtracks": 0,
@@ -951,10 +959,10 @@
         "robot_id": "AMR03",
         "runtime": {
           "deadline_misses": 0,
-          "loop_max_ms": 1.3380000018514693,
-          "loop_mean_ms": 0.32553512968921233,
-          "loop_p95_ms": 1.1200830049347132,
-          "loop_p99_ms": 1.3380000018514693,
+          "loop_max_ms": 1.0896669991780072,
+          "loop_mean_ms": 0.30698635798346785,
+          "loop_p95_ms": 0.8270840044133365,
+          "loop_p99_ms": 1.0896669991780072,
           "sensor_timeouts": 0,
           "ticks": 70
         },
@@ -972,8 +980,8 @@
         },
         "transport": {
           "auth_failed": 0,
-          "bytes_recv": 12800,
-          "bytes_sent": 4443,
+          "bytes_recv": 12786,
+          "bytes_sent": 4439,
           "malformed": 0,
           "oversized": 0,
           "recv": 49,
@@ -1000,17 +1008,17 @@
     "sensor_cut_evidence": {
       "cut_at_s": 0.3,
       "cut_duration_s": 0.5,
-      "first_safety_stop_after_cut_s": 0.526605291001033,
+      "first_safety_stop_after_cut_s": 0.5249143750115763,
       "pass": true,
       "recovered_after_sensor_return": true,
-      "response_s": 0.22660529100103305,
+      "response_s": 0.22491437501157635,
       "robot_id": "AMR01"
     },
     "separate_edge_nodes": true,
     "success": true,
     "tasks_announced": 12,
     "tasks_completed": 0,
-    "wall_time_s": 1.5466898329905234
+    "wall_time_s": 1.5190276250068564
   },
   "success": true,
   "verdict": "PASS"
